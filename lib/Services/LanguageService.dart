@@ -36,11 +36,6 @@ class LanguageServices extends ChangeNotifier{
     return false;
   }
 
-//  void setLanguage({language}){
-//    currentLanguage = language;
-//    initLanguage(currentLanguage: language);
-//  }
-
   Future<Map<String,String>> getLanguageData()async{
     http.Response res = await http.get('${PROTOCAL}://${IP}:${PORT}/APIs/languageservice/loadlanguagedata.php?language_id=${currentLanguage}');
     List<dynamic> tmp = jsonDecode(res.body);
@@ -56,5 +51,9 @@ class LanguageServices extends ChangeNotifier{
 
   Future loadDefaultLanguage()async{
     await initLanguage(1);
+  }
+
+  String getLanguageId(){
+    return this.currentLanguage;
   }
 }

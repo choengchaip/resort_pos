@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:resort_pos/Pages/SignUp/SignUpForm.dart';
+import 'package:resort_pos/Pages/SignUp/TermsPage.dart';
 import 'package:resort_pos/Services/AppFontStyles.dart';
+import 'package:resort_pos/Services/Authentication.dart';
 import 'package:resort_pos/Services/LanguageService.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +15,7 @@ enum Language{
 }
 
 class _language_page extends State<language_page>{
+  Authentication _authentication;
   LanguageServices _languageServices;
   AppFontStyle _appFontStyle;
   bool isLoaded;
@@ -30,6 +33,7 @@ class _language_page extends State<language_page>{
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
+    _authentication = Provider.of<Authentication>(context);
     _languageServices = Provider.of<LanguageServices>(context,listen: false);
   }
 
@@ -220,7 +224,7 @@ class _language_page extends State<language_page>{
               onTap: (){
                 setState(() {
                   Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                    return signup_form();
+                    return _authentication.getAuthType() == 'email' ? signup_form() : terms_page();
                   }));
                 });
               },

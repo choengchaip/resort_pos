@@ -23,4 +23,7 @@ class AppFontStyle{
   TextStyle getLightText({color: darkColor}){
     return TextStyle(fontSize: 15, color: color, fontWeight: FontWeight.w300);
   }
+  TextStyle getNormalText({color: darkColor}){
+    return TextStyle(fontSize: 14, color: color, fontWeight: FontWeight.normal);
+  }
 }

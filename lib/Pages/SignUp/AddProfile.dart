@@ -18,6 +18,7 @@ class _add_profile extends State<add_profile> {
   Authentication _authentication;
   LanguageServices _languageServices;
   AppFontStyle _appFontStyle;
+  bool isLoaded;
 
   File _file;
 
@@ -26,6 +27,7 @@ class _add_profile extends State<add_profile> {
     // TODO: implement initState
     super.initState();
     _appFontStyle = new AppFontStyle();
+    isLoaded = true;
   }
 
   @override
@@ -51,18 +53,33 @@ class _add_profile extends State<add_profile> {
   }
 
   Future uploadImageToServer()async{
+    setState(() {
+      isLoaded = false;
+    });
     if(_file == null){
+      if(_authentication.getUserAvatar() != null){
+        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+          return home_page();
+        }));
+      }
       return;
     }
 
     String base64File = base64Encode(_file.readAsBytesSync());
     String imageName = 'imageprofile_${_authentication.getId()}';
 
-    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/login/login.php', body: {
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/uploadimage.php', body: {
       'image': base64File,
       'image_name': imageName
     });
-    print(res.body);
+    if(res.body == '1'){
+      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+        return home_page();
+      }));
+    }
+    setState(() {
+      isLoaded = true;
+    });
   }
 
   @override
@@ -70,7 +87,7 @@ class _add_profile extends State<add_profile> {
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
     // TODO: implement build
     return Scaffold(
-      body: Container(
+      body: isLoaded ? Container(
         color: Color(0xffF4F4F4),
         child: Column(
           children: <Widget>[
@@ -94,7 +111,7 @@ class _add_profile extends State<add_profile> {
                                   color: Colors.white,
                                   image: DecorationImage(image: FileImage(_file),alignment: Alignment.center,fit: BoxFit.cover)
                               ),
-                            ): Container(
+                            ): _authentication.getUserAvatar() == null ? Container(
                               margin: EdgeInsets.only(bottom: 15),
                               height: 210,
                               width: 210,
@@ -102,7 +119,17 @@ class _add_profile extends State<add_profile> {
                                 shape: BoxShape.circle,
                                 color: Colors.white,
                               ),
-                            ),
+                            ):Container(
+                              margin: EdgeInsets.only(bottom: 15),
+                              height: 210,
+                              width: 210,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  image: DecorationImage(image: NetworkImage(_authentication.getUserAvatar()),alignment: Alignment.center,fit: BoxFit.cover)
+                              ),
+                            )
                           ],
                         ),
                       ),
@@ -151,9 +178,6 @@ class _add_profile extends State<add_profile> {
                   GestureDetector(
                     onTap: (){
                       uploadImageToServer();
-                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                        return home_page();
-                      }));
                     },
                     child: Container(
                       alignment: Alignment.center,
@@ -186,7 +210,7 @@ class _add_profile extends State<add_profile> {
             )
           ],
         ),
-      ),
+      ):Container(alignment: Alignment.center,child: CircularProgressIndicator(),),
     );
   }
 }

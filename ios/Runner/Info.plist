@@ -12,6 +12,32 @@
     <string>resort pos require your permission</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>resort pos require your permission</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+
+        </dict>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>fb796886307442412</string>
+            </array>
+        </dict>
+    </array>
+
+    <key>FacebookAppID</key>
+    <string>796886307442412</string>
+    <key>FacebookDisplayName</key>
+    <string>Resort Pos</string>
+
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>fbapi</string>
+        <string>fb-messenger-share-api</string>
+        <string>fbauth2</string>
+        <string>fbshareextension</string>
+    </array>
+
 
 
 	<key>CFBundleDevelopmentRegion</key>

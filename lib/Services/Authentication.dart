@@ -5,6 +5,7 @@ class Authentication extends ChangeNotifier{
   String userName;
   String userEmail;
   String userAvatar;
+  String authType;
   double latitude;
   double longitude;
   bool isLogin;
@@ -39,6 +40,10 @@ class Authentication extends ChangeNotifier{
     };
   }
 
+  String getAuthType(){
+    return this.authType;
+  }
+
   bool getLoginStatus(){
     return this.isLogin;
   }
@@ -66,6 +71,9 @@ class Authentication extends ChangeNotifier{
   void setCurrentPostion({latitude,longitude}){
     this.latitude = latitude;
     this.longitude = longitude;
+  }
+  void setAuthType(authType){
+    this.authType = authType;
   }
 
 }

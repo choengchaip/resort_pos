@@ -3,6 +3,7 @@ import 'package:resort_pos/LoginPage.dart';
 import 'package:provider/provider.dart';
 import 'package:resort_pos/Services/Authentication.dart';
 import 'package:resort_pos/Services/LanguageService.dart';
+import 'package:resort_pos/Services/POSService.dart';
 
 void main() {
   runApp(
@@ -10,6 +11,7 @@ void main() {
       providers: [
         ChangeNotifierProvider<Authentication>.value(value: Authentication()),
         ChangeNotifierProvider<LanguageServices>.value(value: LanguageServices()),
+        ChangeNotifierProvider<POSService>.value(value: POSService())
       ],
       child: MaterialApp(
         title: "Resort POS",

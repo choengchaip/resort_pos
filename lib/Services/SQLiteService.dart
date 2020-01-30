@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
-class SQLiteDatabase with ChangeNotifier {
+class SQLiteDatabase extends ChangeNotifier {
   Database _db;
 
   Future initialDatabase(userId) async {
