@@ -65,7 +65,7 @@ class _login_page extends State<login_page> {
       _authentication.setUserName(resData[1]);
       _authentication.setUserEmail(resData[2]);
       _authentication.setUserAvatar(resData[3] == null ? null : resData[3].toString().substring(0,4) != 'http' ? '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${resData[3]}' : resData[3]);
-      Navigator.push(context,
+      Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (BuildContext context) {
         return home_page();
       }));
@@ -80,10 +80,10 @@ class _login_page extends State<login_page> {
     _languageServices = Provider.of<LanguageServices>(context, listen: false);
     if (!isLoaded) {
       initLanguage().then((a) {
+        setState(() {
+          isLoaded = true;
+        });
         initLocation().then((b) {
-          setState(() {
-            isLoaded = true;
-          });
         });
       });
     }
@@ -98,16 +98,13 @@ class _login_page extends State<login_page> {
 
     var location = new Location();
 
-// Platform messages may fail, so we use a try/catch PlatformException.
     try {
       currentLocation = await location.getLocation();
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENIED') {}
       currentLocation = null;
     }
-    _authentication.setCurrentPostion(
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude);
+    _authentication.setCurrentPostion(latitude: currentLocation.latitude, longitude: currentLocation.longitude);
   }
 
   Future login() async {
@@ -175,8 +172,7 @@ class _login_page extends State<login_page> {
       _authentication.setUserAvatar(userData[3] == null ? null : '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${userData[3]}');
       await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'email',
           password: _password.text);
-      Navigator.push(context,
-          MaterialPageRoute(builder: (BuildContext context) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context){
         return home_page();
       }));
     } else if (res.body == '0') {
