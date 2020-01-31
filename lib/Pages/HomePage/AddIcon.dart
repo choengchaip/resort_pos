@@ -162,7 +162,7 @@ class _addicon_page extends State<addicon_page> {
                           left: 15, right: 15, top: 5, bottom: 5),
                       decoration: BoxDecoration(
                         color: Color(0xff707070),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Column(
                         children: <Widget>[
@@ -198,7 +198,7 @@ class _addicon_page extends State<addicon_page> {
                           left: 15, right: 15, top: 5, bottom: 5),
                       decoration: BoxDecoration(
                         color: Color(0xff0092C7),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Column(
                         children: <Widget>[

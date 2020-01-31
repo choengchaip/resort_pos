@@ -5,13 +5,11 @@ import 'package:resort_pos/Services/AppFontStyles.dart';
 import 'package:resort_pos/Services/Authentication.dart';
 import 'package:resort_pos/Services/LanguageService.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class language_page extends StatefulWidget{
   _language_page createState() => _language_page();
-}
-
-enum Language{
-  TH,EN,CH,SP,CH2,KR
 }
 
 class _language_page extends State<language_page>{
@@ -20,14 +18,16 @@ class _language_page extends State<language_page>{
   AppFontStyle _appFontStyle;
   bool isLoaded;
   Map<String, String> languageData;
-  Language _language = Language.TH;
+  List<dynamic> languageList;
+  String currentLanguage;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    isLoaded = true;
+    isLoaded = false;
     _appFontStyle = new AppFontStyle();
+    currentLanguage = '1';
   }
 
   void didChangeDependencies() {
@@ -35,6 +35,18 @@ class _language_page extends State<language_page>{
     super.didChangeDependencies();
     _authentication = Provider.of<Authentication>(context);
     _languageServices = Provider.of<LanguageServices>(context,listen: false);
+    if(!isLoaded){
+      loadLanguageList();
+    }
+  }
+
+  Future loadLanguageList()async{
+    http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/languageservice/getlanguagelist.php');
+    languageList = jsonDecode(res.body);
+    setState(() {
+      print(languageList);
+      isLoaded = true;
+    });
   }
 
   Future loadLanguageData(id)async{
@@ -46,6 +58,17 @@ class _language_page extends State<language_page>{
     setState(() {
       isLoaded = true;
     });
+  }
+
+  Future setConfigLanguage()async{
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/languageservice/setlanguageconfig.php',body:{
+      'language_id': currentLanguage
+    });
+    if(res.body == '1'){
+      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+        return _authentication.getAuthType() == 'email' ? signup_form() : terms_page();
+      }));
+    }
   }
 
   @override
@@ -74,159 +97,37 @@ class _language_page extends State<language_page>{
             ),
             Expanded(
               child: Container(
-                child: ListView(
-                  children: <Widget>[
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          _language = Language.TH;
-                          loadLanguageData('1');
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.only(bottom: 15),
-                        padding: EdgeInsets.only(left: 15, right: 15),
-                        height: 55,
-                        decoration: BoxDecoration(
-                          color: _language == Language.TH ? Color(0xff0092C7) : Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        child: Text(
-                          "ไทย",
-                          style: _appFontStyle.getButtonText(
-                              color: _language == Language.TH ? Color(0xffffffff) : Color(0xff333333)),
-                        ),
+                child: ListView.builder(itemCount: languageList == null ? 0 : languageList.length,itemBuilder: (BuildContext context, int index){
+                  return GestureDetector(
+                    onTap: (){
+                      setState(() {
+                        currentLanguage = languageList[index][0];
+                        loadLanguageData(languageList[index][0]);
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      alignment: Alignment.center,
+                      margin: EdgeInsets.only(bottom: 15),
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                      height: 55,
+                      decoration: BoxDecoration(
+                        color: currentLanguage == languageList[index][0] ? Color(0xff0092C7) : Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                      ),
+                      child: Text(
+                        languageList[index][1],
+                        style: _appFontStyle.getButtonText(
+                            color: currentLanguage == languageList[index][0] ? Color(0xffffffff) : Color(0xff333333)),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          _language = Language.EN;
-                          loadLanguageData('2');
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.only(bottom: 15),
-                        padding: EdgeInsets.only(left: 15, right: 15),
-                        height: 55,
-                        decoration: BoxDecoration(
-                          color: _language == Language.EN ? Color(0xff0092C7) : Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        child: Text(
-                          "English",
-                          style: _appFontStyle.getButtonText(
-                              color: _language == Language.EN ? Color(0xffffffff) : Color(0xff333333)),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          _language = Language.CH;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.only(bottom: 15),
-                        padding: EdgeInsets.only(left: 15, right: 15),
-                        height: 55,
-                        decoration: BoxDecoration(
-                          color: _language == Language.CH ? Color(0xff0092C7) : Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        child: Text(
-                          "中文语言",
-                          style: _appFontStyle.getButtonText(
-                              color: _language == Language.CH ? Color(0xffffffff) : Color(0xff333333)),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          _language = Language.SP;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.only(bottom: 15),
-                        padding: EdgeInsets.only(left: 15, right: 15),
-                        height: 55,
-                        decoration: BoxDecoration(
-                          color: _language == Language.SP ? Color(0xff0092C7) : Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        child: Text(
-                          "Idioma español",
-                          style: _appFontStyle.getButtonText(
-                              color: _language == Language.SP ? Color(0xffffffff) : Color(0xff333333)),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          _language = Language.CH2;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.only(bottom: 15),
-                        padding: EdgeInsets.only(left: 15, right: 15),
-                        height: 55,
-                        decoration: BoxDecoration(
-                          color: _language == Language.CH2 ? Color(0xff0092C7) : Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        child: Text(
-                          "日本語",
-                          style: _appFontStyle.getButtonText(
-                              color: _language == Language.CH2 ? Color(0xffffffff) : Color(0xff333333)),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          _language = Language.KR;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.only(bottom: 15),
-                        padding: EdgeInsets.only(left: 15, right: 15),
-                        height: 55,
-                        decoration: BoxDecoration(
-                          color: _language == Language.KR ? Color(0xff0092C7) : Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        child: Text(
-                          "한국어",
-                          style: _appFontStyle.getButtonText(
-                              color: _language == Language.KR ? Color(0xffffffff) : Color(0xff333333)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                }),
               ),
             ),
             GestureDetector(
               onTap: (){
-                setState(() {
-                  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                    return _authentication.getAuthType() == 'email' ? signup_form() : terms_page();
-                  }));
-                });
+                setConfigLanguage();
               },
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 300),
@@ -236,7 +137,7 @@ class _language_page extends State<language_page>{
                 height: 55,
                 decoration: BoxDecoration(
                   color: Color(0xff0092C7),
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                  borderRadius: BorderRadius.all(Radius.circular(25)),
                 ),
                 child: Text(
                   _languageServices.getText('confirm'),

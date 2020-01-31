@@ -57,11 +57,22 @@ class _add_profile extends State<add_profile> {
       isLoaded = false;
     });
     if(_file == null){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาเลือกรูป",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
       if(_authentication.getUserAvatar() != null){
         Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
           return home_page();
         }));
       }
+      setState(() {
+        isLoaded = true;
+      });
       return;
     }
 
@@ -70,9 +81,11 @@ class _add_profile extends State<add_profile> {
 
     http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/uploadimage.php', body: {
       'image': base64File,
-      'image_name': imageName
+      'image_name': imageName,
+      'user_id': _authentication.getId()
     });
     if(res.body == '1'){
+      _authentication.setUserAvatar('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${imageName}.jpg');
       Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
         return home_page();
       }));
@@ -152,27 +165,35 @@ class _add_profile extends State<add_profile> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Container(
-                    alignment: Alignment.center,
-                    width: 100,
-                    margin: EdgeInsets.only(right: 25),
-                    padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
-                    decoration: BoxDecoration(
-                      color: Color(0xff707070),
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          child: Icon(Icons.arrow_forward,color: Colors.white,),
-                        ),
-                        Container(
-                          child: Text(
-                            _languageServices.getText('skip'),
-                            style: _appFontStyle.getLightText(color: Colors.white),
+                  GestureDetector(
+                    onTap: (){
+                      _authentication.setUserAvatar(null);
+                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+                        return home_page();
+                      }));
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      width: 100,
+                      margin: EdgeInsets.only(right: 25),
+                      padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
+                      decoration: BoxDecoration(
+                        color: Color(0xff707070),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          Container(
+                            child: Icon(Icons.arrow_forward,color: Colors.white,),
                           ),
-                        ),
-                      ],
+                          Container(
+                            child: Text(
+                              _languageServices.getText('skip'),
+                              style: _appFontStyle.getLightText(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   GestureDetector(
@@ -185,7 +206,7 @@ class _add_profile extends State<add_profile> {
                       padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
                       decoration: BoxDecoration(
                         color: Color(0xff0092C7),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Column(
                         children: <Widget>[

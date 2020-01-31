@@ -4,30 +4,54 @@ import 'package:sqflite/sqflite.dart';
 class SQLiteDatabase extends ChangeNotifier {
   Database _db;
 
-  Future initialDatabase(userId) async {
+  Future initialDatabase(userId,provider,{password: '',providerid: 'email'}) async {
     this._db = await openDatabase('authentication.db');
 
     await this._db.transaction((txn) async {
       await txn.rawQuery('''CREATE TABLE IF NOT EXISTS users (
                                       id INTEGER PRIMARY KEY,
-                                      userid TEXT NOT NULL
+                                      provider VARCHAR(8) NOT NULL,
+                                      userid VARCHAR(10) NOT NULL,
+                                      password VARCHAR(100),
+                                      providerid TEXT
                                       )''');
     });
     await this._db.transaction((txn) async {
       await txn.rawInsert(
-      '''INSERT INTO users(id, userid) VALUES(1, "${userId}") ON CONFLICT(id) DO UPDATE SET userid="${userId}"''');
+      '''INSERT INTO users(id, provider, userid, password, providerid) 
+        VALUES(1, '$provider','${userId}','$password','$providerid') 
+        ON CONFLICT(id) DO UPDATE SET provider="$provider",userid="${userId}",password="$password",providerid="$providerid" ''');
     });
   }
 
   Future getCurrentUserId() async {
     this._db = await openDatabase('authentication.db');
+    await this._db.transaction((txn) async {
+      await txn.rawQuery('''CREATE TABLE IF NOT EXISTS users (
+                                      id INTEGER PRIMARY KEY,
+                                      provider VARCHAR(8) NOT NULL,
+                                      userid VARCHAR(10) NOT NULL,
+                                      password VARCHAR(100),
+                                      providerid TEXT
+                                      )''');
+    });
     List<Map<String, dynamic>> tmp;
     await this._db.transaction((txn)async{
       tmp = await txn.rawQuery('''
         SELECT * FROM users
+        WHERE users.id = 1
       ''');
     });
     return tmp;
+  }
+
+  Future clearCurrentUser()async{
+    this._db = await openDatabase('authentication.db');
+    await this._db.transaction((txn)async{
+      await txn.rawDelete('''
+        DELETE FROM users
+      ''');
+    });
   }
 }
 

@@ -12,6 +12,7 @@ import 'package:resort_pos/Services/SQLiteService.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class login_page extends StatefulWidget {
   @override
@@ -36,14 +37,39 @@ class _login_page extends State<login_page> {
     super.initState();
     _appFontStyle = new AppFontStyle();
     _sqLiteDatabase = new SQLiteDatabase();
-    initLocation().then((a) {
-      isCurrentUserLogin();
-    });
+    isCurrentUserLogin();
   }
 
   Future isCurrentUserLogin() async {
-    await _sqLiteDatabase.initialDatabase('12312');
     var result = await _sqLiteDatabase.getCurrentUserId();
+    if(result.length == 0){
+      return;
+    }
+    Map<String, double> currentLocation;
+    currentLocation = _authentication.getCurrentPosition();
+    Map<String, dynamic> userData = {
+      'login_type': result[0]['provider'],
+      'autologin': 'auto',
+      'password': result[0]['password'],
+      'facebook_id': result[0]['providerid'],
+      'userautoid': result[0]['userid'],
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString()
+    };
+    http.Response res = await http.post(
+        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/login/login.php',
+        body: userData);
+    if (res.body != '0') {
+      var resData = jsonDecode(res.body);
+      _authentication.setUserId(resData[0]);
+      _authentication.setUserName(resData[1]);
+      _authentication.setUserEmail(resData[2]);
+      _authentication.setUserAvatar(resData[3] == null ? null : resData[3].toString().substring(0,4) != 'http' ? '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${resData[3]}' : resData[3]);
+      Navigator.push(context,
+          MaterialPageRoute(builder: (BuildContext context) {
+        return home_page();
+      }));
+    }
   }
 
   @override
@@ -88,6 +114,44 @@ class _login_page extends State<login_page> {
     setState(() {
       isLoaded = false;
     });
+    if(_email.text.isEmpty){
+      setState(() {
+        isLoaded = true;
+      });
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่อีเมล",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+              },
+              child: Text("ตกลง"),
+            )
+          ],
+        );
+      });
+      return;
+    }
+    if(_password.text.isEmpty){
+      setState(() {
+        isLoaded = true;
+      });
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่รหัสผ่าน",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+              },
+              child: Text("ตกลง"),
+            )
+          ],
+        );
+      });
+      return;
+    }
     Map<String, double> currentLocation;
     currentLocation = _authentication.getCurrentPosition();
     Map<String, dynamic> userData = {
@@ -108,7 +172,9 @@ class _login_page extends State<login_page> {
       _authentication.setUserId(userData[0]);
       _authentication.setUserName(userData[1]);
       _authentication.setUserEmail(userData[2]);
-      _authentication.setUserAvatar(userData[3]);
+      _authentication.setUserAvatar(userData[3] == null ? null : '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${userData[3]}');
+      await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'email',
+          password: _password.text);
       Navigator.push(context,
           MaterialPageRoute(builder: (BuildContext context) {
         return home_page();
@@ -141,9 +207,9 @@ class _login_page extends State<login_page> {
     FacebookLogin facebookLogin = FacebookLogin();
     FacebookLoginResult result =
         await facebookLogin.logIn(['email']).catchError((e) {
-        print(e);
+      print(e);
     });
-    String userId = result.accessToken.userId;
+    String facebookId = result.accessToken.userId;
     String token = result.accessToken.token;
     final graphResponse = await http.get(
         'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,picture.width(512),email&access_token=${token}');
@@ -155,7 +221,7 @@ class _login_page extends State<login_page> {
     String avatar = profile['picture']['data']['url'];
     Map<String, dynamic> userData = {
       'login_type': 'facebook',
-      'facebook_id': userId,
+      'facebook_id': facebookId,
       'latitude': currentLocation['latitude'].toString(),
       'longitude': currentLocation['longitude'].toString()
     };
@@ -169,7 +235,7 @@ class _login_page extends State<login_page> {
         'firstname': firstName,
         'lastname': lastName,
         'provider': 'facebook',
-        'facebook_id': userId,
+        'facebook_id': facebookId,
         'email': email.isEmpty ? null : email,
         'latitude': currentLocation['latitude'].toString(),
         'longitude': currentLocation['longitude'].toString(),
@@ -182,10 +248,15 @@ class _login_page extends State<login_page> {
       if (res.body != '0') {
         String userId = res.body;
         _authentication.setUserId(userId);
-        _authentication.setUserEmail(email.isEmpty ? '' : email,);
+        _authentication.setUserEmail(
+          email.isEmpty ? '' : email,
+        );
         _authentication.setUserName(fullName);
         _authentication.setLoginStatus(true);
         _authentication.setUserAvatar(avatar);
+        await _sqLiteDatabase.initialDatabase(
+            _authentication.getId(), 'facebook',
+            providerid: facebookId);
         Navigator.push(context,
             MaterialPageRoute(builder: (BuildContext context) {
           return language_page();
@@ -197,11 +268,24 @@ class _login_page extends State<login_page> {
       _authentication.setUserName(userData[1]);
       _authentication.setUserEmail(userData[2]);
       _authentication.setUserAvatar(userData[3]);
+      await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'facebook',
+          providerid: facebookId);
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (BuildContext context) {
         return home_page();
       }));
     }
+  }
+
+  Future loginWithGoogle()async{
+    GoogleSignIn _googleSignIn = GoogleSignIn();
+    GoogleSignInAccount _googleUser;
+    try{
+      _googleUser = await _googleSignIn.signIn();
+    }catch(err){
+      print(err);
+    }
+    print(_googleUser);
   }
 
   @override
@@ -241,13 +325,18 @@ class _login_page extends State<login_page> {
                                     width: 120,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white,
-                                      boxShadow: [
-                                        BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: 2)
-                                      ],
-                                      image: DecorationImage(image: AssetImage('assets/images/pos-logo.png'),fit: BoxFit.cover)
-                                    ),
+                                        shape: BoxShape.circle,
+                                        color: Colors.white,
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color:
+                                                  Color.fromRGBO(0, 0, 0, 0.3),
+                                              blurRadius: 2)
+                                        ],
+                                        image: DecorationImage(
+                                            image: AssetImage(
+                                                'assets/images/pos-logo.png'),
+                                            fit: BoxFit.cover)),
                                   ),
                                 ],
                               ),
@@ -260,7 +349,7 @@ class _login_page extends State<login_page> {
                               decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(25)),
                                   boxShadow: [
                                     BoxShadow(
                                         color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -283,7 +372,7 @@ class _login_page extends State<login_page> {
                               decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(25)),
                                   boxShadow: [
                                     BoxShadow(
                                         color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -293,8 +382,7 @@ class _login_page extends State<login_page> {
                                 controller: _password,
                                 obscureText: true,
                                 style: _appFontStyle.getInputText(),
-                                decoration:
-                                    InputDecoration.collapsed(
+                                decoration: InputDecoration.collapsed(
                                   hintText:
                                       _languageServices.getText('password'),
                                 ),
@@ -312,7 +400,7 @@ class _login_page extends State<login_page> {
                                 decoration: BoxDecoration(
                                   color: Color(0xff0092C7),
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(25)),
                                 ),
                                 child: Text(
 //                        languageData == null ? "Loading" : languageData['login'],
@@ -371,7 +459,7 @@ class _login_page extends State<login_page> {
                                   decoration: BoxDecoration(
                                     color: Color(0xffADADAD),
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
+                                        BorderRadius.all(Radius.circular(25)),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -413,7 +501,7 @@ class _login_page extends State<login_page> {
                                   decoration: BoxDecoration(
                                     color: Color(0xff0076A2),
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
+                                        BorderRadius.all(Radius.circular(25)),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -444,43 +532,48 @@ class _login_page extends State<login_page> {
                                     ],
                                   )),
                             ),
-                            Container(
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.only(bottom: 15),
-                                padding: EdgeInsets.only(left: 15, right: 15),
-                                height: 55,
-                                decoration: BoxDecoration(
-                                  color: Color(0xffDD4B39),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Expanded(
-                                      flex: 1,
-                                      child: Container(
-                                        alignment: Alignment.centerRight,
-                                        padding: EdgeInsets.only(
-                                            top: 16, bottom: 16, right: 15),
-                                        child: Image.asset(
-                                            'assets/icons/google.png'),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 1,
-                                      child: Container(
-                                        child: Text(
-//                                  languageData == null ? "Loading" : languageData['google'],
-                                          _languageServices.getText('google'),
-                                          style:
-                                              _appFontStyle.getSmallButtonText(
-                                                  color: Color(0xffffffff)),
+                            GestureDetector(
+                              onTap: (){
+                                loginWithGoogle();
+                              },
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  margin: EdgeInsets.only(bottom: 15),
+                                  padding: EdgeInsets.only(left: 15, right: 15),
+                                  height: 55,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffDD4B39),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(25)),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          alignment: Alignment.centerRight,
+                                          padding: EdgeInsets.only(
+                                              top: 16, bottom: 16, right: 15),
+                                          child: Image.asset(
+                                              'assets/icons/google.png'),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )),
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          child: Text(
+//                                  languageData == null ? "Loading" : languageData['google'],
+                                            _languageServices.getText('google'),
+                                            style:
+                                                _appFontStyle.getSmallButtonText(
+                                                    color: Color(0xffffffff)),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            ),
                             Container(
                                 alignment: Alignment.center,
                                 margin: EdgeInsets.only(bottom: 15),
@@ -489,7 +582,7 @@ class _login_page extends State<login_page> {
                                 decoration: BoxDecoration(
                                   color: Color(0xff00A4E0),
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(25)),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,

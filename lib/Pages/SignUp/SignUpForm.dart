@@ -6,6 +6,7 @@ import 'package:resort_pos/Services/LanguageService.dart';
 import 'package:resort_pos/Pages/SignUp/TermsPage.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:resort_pos/Services/SQLiteService.dart';
 
 class signup_form extends StatefulWidget {
   _signup_form createState() => _signup_form();
@@ -15,6 +16,7 @@ class _signup_form extends State<signup_form> {
   Authentication _authentication;
   LanguageServices _languageServices;
   AppFontStyle _appFontStyle;
+  SQLiteDatabase _sqLiteDatabase;
 
   final format = DateFormat("yyyy-MM-dd");
 
@@ -33,6 +35,7 @@ class _signup_form extends State<signup_form> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    _sqLiteDatabase = new SQLiteDatabase();
     _appFontStyle = new AppFontStyle();
   }
 
@@ -46,21 +49,69 @@ class _signup_form extends State<signup_form> {
 
   Future uploadData() async {
     if(_firstname.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่ชื่อ",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
       return;
     }
     if(_lastname.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่นามสกุล",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
       return;
     }
     if(_telephone.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่เบอร์มือถือ",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
       return;
     }
     if(_email.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่อีเมล์",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
       return;
     }
     if(_password.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่รหัสผ่าน",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
       return;
     }
     if(_birthday == null){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("กรุณาใส่วันเกิด",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
       return;
     }
 
@@ -74,6 +125,8 @@ class _signup_form extends State<signup_form> {
       'email': _email.text,
       'password': _password.text,
       'birthday': _birthday,
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString()
     };
 
     http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/createaccount.php',
@@ -84,6 +137,8 @@ class _signup_form extends State<signup_form> {
       _authentication.setUserEmail(_email.text);
       _authentication.setUserName(_firstname.text);
       _authentication.setLoginStatus(true);
+      await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'email',
+          password: _password.text);
       Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
         return terms_page();
       }));
@@ -124,7 +179,7 @@ class _signup_form extends State<signup_form> {
                       height: 55,
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
                           boxShadow: [
                             BoxShadow(
                                 color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -143,7 +198,7 @@ class _signup_form extends State<signup_form> {
                       height: 55,
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
                           boxShadow: [
                             BoxShadow(
                                 color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -162,7 +217,7 @@ class _signup_form extends State<signup_form> {
                       height: 55,
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
                           boxShadow: [
                             BoxShadow(
                                 color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -181,7 +236,7 @@ class _signup_form extends State<signup_form> {
                       height: 55,
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
                           boxShadow: [
                             BoxShadow(
                                 color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -200,7 +255,7 @@ class _signup_form extends State<signup_form> {
                       height: 55,
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
                           boxShadow: [
                             BoxShadow(
                                 color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -227,7 +282,7 @@ class _signup_form extends State<signup_form> {
                         height: 55,
                         decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            borderRadius: BorderRadius.all(Radius.circular(25)),
                             boxShadow: [
                               BoxShadow(
                                   color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -270,7 +325,7 @@ class _signup_form extends State<signup_form> {
                   height: 55,
                   decoration: BoxDecoration(
                     color: Color(0xff0092C7),
-                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
                   ),
                   child: Text(
                     _languageServices.getText('singUp'),

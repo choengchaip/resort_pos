@@ -10,7 +10,7 @@ class Authentication extends ChangeNotifier{
   double longitude;
   bool isLogin;
   final PROTOCAL = 'http';
-  final IP = 'localhost';
+  final IP = '192.168.1.9';
   final PORT = 8080;
 
   get GETPROTOCAL => this.PROTOCAL;

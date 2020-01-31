@@ -99,20 +99,25 @@ class _forget_page extends State<forget_page>{
                     hintText: _languageServices.getText('reEmail')),
               ),
             ),
-            Container(
-              alignment: Alignment.center,
-              margin: EdgeInsets.only(bottom: 15),
-              padding: EdgeInsets.only(left: 15, right: 15),
-              height: 55,
-              decoration: BoxDecoration(
-                color: Color(0xff0092C7),
-                borderRadius: BorderRadius.all(Radius.circular(4)),
-              ),
-              child: Text(
+            GestureDetector(
+              onTap: (){
+                Navigator.of(context).pop();
+              },
+              child: Container(
+                alignment: Alignment.center,
+                margin: EdgeInsets.only(bottom: 15),
+                padding: EdgeInsets.only(left: 15, right: 15),
+                height: 55,
+                decoration: BoxDecoration(
+                  color: Color(0xff0092C7),
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+                child: Text(
 //                languageData == null ? 'Loading' : languageData['sendPassword'],
-                _languageServices.getText('sendPassword'),
-                style: _appFontStyle.getButtonText(
-                    color: Color(0xffffffff)),
+                  _languageServices.getText('sendPassword'),
+                  style: _appFontStyle.getButtonText(
+                      color: Color(0xffffffff)),
+                ),
               ),
             ),
           ],

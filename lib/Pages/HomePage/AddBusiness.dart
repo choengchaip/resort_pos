@@ -131,7 +131,7 @@ class _addbusiness_page extends State<addbusiness_page>{
               decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius:
-                  BorderRadius.all(Radius.circular(4)),
+                  BorderRadius.all(Radius.circular(25)),
                   boxShadow: [
                     BoxShadow(
                         color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -174,7 +174,7 @@ class _addbusiness_page extends State<addbusiness_page>{
               decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius:
-                  BorderRadius.all(Radius.circular(4)),
+                  BorderRadius.all(Radius.circular(25)),
                   boxShadow: [
                     BoxShadow(
                         color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -231,7 +231,7 @@ class _addbusiness_page extends State<addbusiness_page>{
                       padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
                       decoration: BoxDecoration(
                         color: Color(0xff707070),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Column(
                         children: <Widget>[
@@ -260,7 +260,7 @@ class _addbusiness_page extends State<addbusiness_page>{
                       padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
                       decoration: BoxDecoration(
                         color: Color(0xff0092C7),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Column(
                         children: <Widget>[

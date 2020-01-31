@@ -59,7 +59,7 @@ class _addpos_page extends State<addpos_page>{
               decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius:
-                  BorderRadius.all(Radius.circular(4)),
+                  BorderRadius.all(Radius.circular(25)),
                   boxShadow: [
                     BoxShadow(
                         color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -104,7 +104,7 @@ class _addpos_page extends State<addpos_page>{
                       padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
                       decoration: BoxDecoration(
                         color: Color(0xff707070),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Column(
                         children: <Widget>[
@@ -122,7 +122,18 @@ class _addpos_page extends State<addpos_page>{
                     ),
                   ),
                   GestureDetector(
-                    onTap: (){
+                    onTap: ()async{
+                      if(_posName.text.isEmpty){
+                        await showDialog(context: context,builder: (BuildContext context){
+                          return AlertDialog(
+                            title: Text("กรุณาใส่ชื่อ",style: _appFontStyle.getSmallButtonText(),),
+                            actions: <Widget>[
+                              FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+                            ],
+                          );
+                        });
+                        return;
+                      }
                       Map<String, String> tmp = {};
                       tmp['name'] = _posName.text;
                       tmp['color'] = '0xff${_posColor.value.toRadixString(16)}';
@@ -136,7 +147,7 @@ class _addpos_page extends State<addpos_page>{
                       padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
                       decoration: BoxDecoration(
                         color: Color(0xff0092C7),
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
                       ),
                       child: Column(
                         children: <Widget>[

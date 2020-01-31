@@ -8,6 +8,7 @@ class POSService extends ChangeNotifier {
   String icon;
   int rowNumber;
   double width;
+  String configEmail;
 
   void setPosId(posId) {
     this.posId = posId;
@@ -37,8 +38,12 @@ class POSService extends ChangeNotifier {
     this.width = width;
   }
 
+  void setConfigEmail(email){
+    this.configEmail = email;
+  }
+
   String getPosId() {
-    return this.getPosId();
+    return this.posId;
   }
 
   String getPosName() {
@@ -63,5 +68,9 @@ class POSService extends ChangeNotifier {
 
   double getWidth() {
     return this.width;
+  }
+
+  String getConfigEmail(){
+    return this.configEmail;
   }
 }

@@ -15,7 +15,14 @@
     <key>CFBundleURLTypes</key>
     <array>
         <dict>
-
+            <key>CFBundleTypeRole</key>
+        	<string>Editor</string>
+        	<key>CFBundleURLSchemes</key>
+        	<array>
+        		<!-- TODO Replace this value: -->
+        		<!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
+        		<string>com.googleusercontent.apps.16788087738-f11s0t2rjojhn6tc7d5e8vb8ifu8vlel</string>
+        	</array>
         </dict>
         <dict>
             <key>CFBundleURLSchemes</key>

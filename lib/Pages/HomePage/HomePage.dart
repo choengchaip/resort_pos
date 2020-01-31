@@ -23,6 +23,7 @@ class _home_page extends State<home_page> {
   bool isLoaded;
 
   List<dynamic> posData;
+  String configEmail;
 
   @override
   void initState() {
@@ -40,7 +41,9 @@ class _home_page extends State<home_page> {
     _languageServices = Provider.of<LanguageServices>(context);
     _posService = Provider.of<POSService>(context);
     if (!isLoaded) {
-      loadPosData();
+      loadConfig().then((e){
+        loadPosData();
+      });
     }
   }
 
@@ -48,9 +51,18 @@ class _home_page extends State<home_page> {
     http.Response res = await http.get(
         '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/pos/getpos.php?user_id=${_authentication.getId()}');
     List<dynamic> tmp = jsonDecode(res.body);
+    print(tmp);
     setState(() {
       posData = tmp;
+      print(posData);
       isLoaded = true;
+    });
+  }
+
+  Future loadConfig()async{
+    http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/pos/loademailconfig.php');
+    setState(() {
+      configEmail = res.body;
     });
   }
 
@@ -81,7 +93,7 @@ class _home_page extends State<home_page> {
                                     shape: BoxShape.circle,
                                     image: DecorationImage(
                                         image: NetworkImage(
-                                            _authentication.getUserAvatar()))),
+                                            _authentication.getUserAvatar()),fit: BoxFit.cover)),
                               )
                             : Container(
                                 height: 55,
@@ -114,19 +126,27 @@ class _home_page extends State<home_page> {
                         itemBuilder: (BuildContext context, int index) {
                           return GestureDetector(
                             onTap: (){
+                              print(posData);
                               if(posData[index][5] == '1'){
-                                _posService.setPosId(posData[index][0]);
-                                _posService.setPosName(posData[index][1]);
-                                _posService.setPosIcon(posData[index][2]);
-                                _posService.setPosColor(posData[index][3]);
-                                _posService.setPermissionId(posData[index][4]);
-                                _posService.setRowNumber(2);
-                                _posService.setWidth(MediaQuery.of(context).size.width);
-                                Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                                  return main_page();
-                                }));
-                              }else if(posData[index][5] == '2'){
-
+                                if(posData[index][6] == '1'){
+                                  _posService.setPosId(posData[index][0]);
+                                  _posService.setPosName(posData[index][1]);
+                                  _posService.setPosIcon(posData[index][2]);
+                                  _posService.setPosColor(posData[index][3]);
+                                  _posService.setPermissionId(posData[index][4]);
+                                  _posService.setRowNumber(2);
+                                  _posService.setWidth(MediaQuery.of(context).size.width);
+                                  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+                                    return main_page();
+                                  }));
+                                }else{
+                                  showDialog(context: context,builder: (BuildContext context){
+                                    return AlertDialog(
+                                      title: Text("ไม่สามารถเข้าใช้งานได้",style: _appFontStyle.getSmallButtonText(),),
+                                      content: Text("กรุณาติดต่อ : ${configEmail}",style: _appFontStyle.getNormalText(),),
+                                    );
+                                  });
+                                }
                               }
                             },
                             child: Container(
@@ -136,7 +156,7 @@ class _home_page extends State<home_page> {
                               decoration: BoxDecoration(
                                   color: Color(int.parse(posData[index][5]) == 2 ? 0xffffffff : int.parse(posData[index][3])),
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
+                                      BorderRadius.all(Radius.circular(25)),
                                   boxShadow: [
                                     BoxShadow(
                                         color: int.parse(posData[index][5]) == 2 ? Colors.black : Color.fromRGBO(0, 0, 0, 0.3),
@@ -169,7 +189,7 @@ class _home_page extends State<home_page> {
                       height: 55,
                       decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
                           boxShadow: [
                             BoxShadow(
                                 color: Color.fromRGBO(0, 0, 0, 0.3),
