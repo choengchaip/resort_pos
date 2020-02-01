@@ -1,5 +1,6 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:resort_pos/LoginPage.dart';
 import 'package:resort_pos/Services/AppFontStyles.dart';
@@ -31,6 +32,22 @@ class _main_page extends State<main_page> {
   List<String> _list;
   List<Map<String, String>> _type;
 
+  bool isEdit = false;
+
+  //Category
+  TextEditingController _categoryName = TextEditingController();
+  File _categoryFile;
+  String _categoryImageName;
+  bool _categoryStatus;
+  int _categorySelect;
+
+  //Product Type
+  List<dynamic> productType;
+  int _productTypeSelect;
+  TextEditingController _productType = TextEditingController();
+  bool _productStatus;
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -40,6 +57,14 @@ class _main_page extends State<main_page> {
     _productView = ProductView.TwoRow;
     isLoaded = false;
     _sqLiteDatabase = new SQLiteDatabase();
+
+    //Category
+    _categoryStatus = false;
+    _categorySelect = 0;
+
+    //ProductType
+    _productStatus = false;
+    _productTypeSelect = 0;
   }
 
   Future onEntry() async {
@@ -55,16 +80,16 @@ class _main_page extends State<main_page> {
         });
   }
 
-  Future deleteCategory(id)async{
+  Future deleteCategory(id) async {
     setState(() {
       isLoaded = false;
       Navigator.of(context).pop();
     });
-    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteposcategory.php',body: {
-      'pos_id': id
-    });
+    http.Response res = await http.post(
+        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteposcategory.php',
+        body: {'pos_id': id});
     print(res.body);
-    if(res.body == '1'){
+    if (res.body == '1') {
       await loadCategoryData();
     }
     setState(() {
@@ -72,13 +97,506 @@ class _main_page extends State<main_page> {
     });
   }
 
-  Future addCategory()async{
+  Future uploadCategory({isUpdate: 'false', oldImage: '', categoryId: ''}) async {
+    Map<String, double> currentLocation = _authentication.getCurrentPosition();
+    Map<String, String> categoryData = {
+      'is_update': isUpdate,
+      'pos_id': _posService.getPosId(),
+      'name': _categoryName.text,
+      'image_name': _categoryImageName,
+      'image': _categoryFile == null
+          ? ''
+          : base64Encode(_categoryFile.readAsBytesSync()),
+      'status': _categoryStatus ? '1' : '0',
+      'old_image': oldImage,
+      'category_id': categoryId,
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString()
+    };
+    print(categoryData);
+    http.Response res = await http.post(
+        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addposcategory.php',
+        body: categoryData);
+    print(res.body);
+    if (res.body != '1') {}
+  }
+
+  Future addCategoryImage() async {
+    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery);
+    String tmpName =
+        '${_posService.getPosId()}_${new DateTime.now().millisecondsSinceEpoch.toString()}';
+    setState(() {
+      _categoryImageName = tmpName;
+      _categoryFile = tmp;
+    });
+  }
+
+  void clearCategory() {
+    setState(() {
+      _categoryFile = null;
+      _categoryName.text = '';
+      _categoryImageName = null;
+      _categoryStatus = false;
+    });
+  }
+
+  void clearProductType(){
+    setState(() {
+      _productTypeSelect = 0;
+      _productType.text = '';
+      _productStatus = false;
+    });
+  }
+
+  Future addCategory() async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Container(
+              height: 321,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20))),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.only(right: 15),
+                          child: Icon(IconData(
+                              int.parse(_posService.getPosIcon()),
+                              fontFamily: 'MaterialIcons')),
+                        ),
+                        Container(
+                          child: Text(
+                            "Category",
+                            style: _appFontStyle.getSmallButtonText(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    color: Color(0xffc5c5c5),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 15, top: 15),
+                    padding: EdgeInsets.only(left: 15, right: 15),
+                    alignment: Alignment.centerLeft,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Color.fromRGBO(0, 0, 0, 0.3),
+                              blurRadius: 3)
+                        ]),
+                    child: TextField(
+                      controller: _categoryName,
+                      style: _appFontStyle.getNormalText(),
+                      decoration: InputDecoration.collapsed(
+                        hintText: _languageServices.getText('name'),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      addCategoryImage();
+                    },
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                      height: 50,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.3),
+                                blurRadius: 2)
+                          ]),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Container(
+                            child: Text(
+                                _categoryImageName == null
+                                    ? _languageServices.getText('picture')
+                                    : _categoryImageName + '.jpg',
+                                style: _appFontStyle.getNormalText()),
+                          ),
+                          Container(
+                            child: Icon(
+                              Icons.add_photo_alternate,
+                              color: Color(0xff565656),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.only(right: 15),
+                          child: Text(
+                            "Online",
+                            style: _appFontStyle.getNormalText(),
+                          ),
+                        ),
+                        Container(
+                          child: Transform.scale(
+                            scale: 1.5,
+                            child: Switch(
+                              activeColor:
+                                  Color(int.parse(_posService.getPosColor())),
+                              value: _categoryStatus,
+                              onChanged: (bool newValue) {
+                                setState(() {
+                                  _categoryStatus = newValue;
+                                });
+                              },
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(),
+                  ),
+                  Container(
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child: GestureDetector(
+                            onTap: () {
+                              clearCategory();
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.only(
+                                  left: 15, right: 15, top: 5, bottom: 5),
+                              decoration: BoxDecoration(
+                                color: Color(0xffD66B6B),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                              ),
+                              child: Column(
+                                children: <Widget>[
+                                  Container(
+                                    child: Icon(
+                                      Icons.clear,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Text(
+                                      _languageServices.getText('back'),
+                                      style: _appFontStyle.getLightText(
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 15),
+                        Expanded(
+                          flex: 1,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isLoaded = false;
+                              });
+                              uploadCategory().then((e) {
+                                loadCategoryData().then((e) {
+                                  clearCategory();
+                                  Navigator.of(context).pop();
+                                });
+                              });
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.only(
+                                  left: 15, right: 15, top: 5, bottom: 5),
+                              decoration: BoxDecoration(
+                                color: Color(0xff0076A2),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                              ),
+                              child: Column(
+                                children: <Widget>[
+                                  Container(
+                                    child: Icon(
+                                      Icons.check_box,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Text(
+                                      _languageServices.getText('confirm'),
+                                      style: _appFontStyle.getLightText(
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  Future editCategory(Map<String, dynamic> categoryData) async {
+    print(categoryData);
+    String oldImage = categoryData['image'];
+    setState(() {
+      _categoryName.text = categoryData['name'];
+      _categoryImageName = categoryData['image'];
+      _categoryStatus = categoryData['status'] == '1' ? true : false;
+    });
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Container(
+              height: 321,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(20))),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    child: Row(
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.only(right: 15),
+                          child: Icon(IconData(
+                              int.parse(_posService.getPosIcon()),
+                              fontFamily: 'MaterialIcons')),
+                        ),
+                        Container(
+                          child: Text(
+                            "Category",
+                            style: _appFontStyle.getSmallButtonText(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    color: Color(0xffc5c5c5),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 15, top: 15),
+                    padding: EdgeInsets.only(left: 15, right: 15),
+                    alignment: Alignment.centerLeft,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(25)),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Color.fromRGBO(0, 0, 0, 0.3),
+                              blurRadius: 3)
+                        ]),
+                    child: TextField(
+                      controller: _categoryName,
+                      style: _appFontStyle.getNormalText(),
+                      decoration: InputDecoration.collapsed(
+                        hintText: _languageServices.getText('name'),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      addCategoryImage();
+                    },
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                      height: 50,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.3),
+                                blurRadius: 2)
+                          ]),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Container(
+                            child: Text(
+                                _categoryImageName == null
+                                    ? _languageServices.getText('picture')
+                                    : _categoryImageName + '.jpg',
+                                style: _appFontStyle.getNormalText()),
+                          ),
+                          Container(
+                            child: Icon(
+                              Icons.add_photo_alternate,
+                              color: Color(0xff565656),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Container(
+                          margin: EdgeInsets.only(right: 15),
+                          child: Text(
+                            "Online",
+                            style: _appFontStyle.getNormalText(),
+                          ),
+                        ),
+                        Container(
+                          child: Transform.scale(
+                            scale: 1.5,
+                            child: Switch(
+                              activeColor:
+                                  Color(int.parse(_posService.getPosColor())),
+                              value: _categoryStatus,
+                              onChanged: (bool newValue) {
+                                setState(() {
+                                  _categoryStatus = !_categoryStatus;
+                                });
+                              },
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(),
+                  ),
+                  Container(
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child: GestureDetector(
+                            onTap: () {
+                              clearCategory();
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.only(
+                                  left: 15, right: 15, top: 5, bottom: 5),
+                              decoration: BoxDecoration(
+                                color: Color(0xffD66B6B),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                              ),
+                              child: Column(
+                                children: <Widget>[
+                                  Container(
+                                    child: Icon(
+                                      Icons.clear,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Text(
+                                      _languageServices.getText('back'),
+                                      style: _appFontStyle.getLightText(
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 15),
+                        Expanded(
+                          flex: 1,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isLoaded = false;
+                              });
+                              uploadCategory(
+                                      isUpdate: 'true',
+                                      oldImage: oldImage,
+                                      categoryId: categoryData['id'])
+                                  .then((e) {
+                                loadCategoryData().then((e) {
+                                  clearCategory();
+                                  Navigator.of(context).pop();
+                                });
+                              });
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.only(
+                                  left: 15, right: 15, top: 5, bottom: 5),
+                              decoration: BoxDecoration(
+                                color: Color(0xff0076A2),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20)),
+                              ),
+                              child: Column(
+                                children: <Widget>[
+                                  Container(
+                                    child: Icon(
+                                      Icons.check_box,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Text(
+                                      _languageServices.getText('confirm'),
+                                      style: _appFontStyle.getLightText(
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  Future deleteProductType(id) async {
     setState(() {
       isLoaded = false;
+      Navigator.of(context).pop();
     });
-
-
-
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteproducttype.php', body: {'product_type_id': id});
+    print(res.body);
+    if (res.body == '1') {
+      await loadCategoryType(_categorySelect);
+    }
     setState(() {
       isLoaded = true;
     });
@@ -97,28 +615,445 @@ class _main_page extends State<main_page> {
       'Pizza6',
       'Pizza7',
       'Pizza8',
+      'dummy'
     ];
 
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getposcategory.php?pos_id=${_posService.getPosId()}');
     List<dynamic> _tmpType = jsonDecode(res.body);
-    List<Map<String,String>> _tmp = [];
+    List<Map<String, String>> _tmp = [];
     print(_tmpType);
-    for(int i=0;i<_tmpType.length;i++){
-        _tmp.add({
-          'name': _tmpType[i][0],
-          'image': _tmpType[i][1],
-          'id': _tmpType[i][2]
-        });
+    for (int i = 0; i < _tmpType.length; i++) {
+      _tmp.add({
+        'name': _tmpType[i][0],
+        'image': _tmpType[i][1],
+        'id': _tmpType[i][2],
+        'status': _tmpType[i][3],
+        'position': _tmpType[i][4]
+      });
     }
+    _tmp.add({'name': 'dummy'});
     setState(() {
       _type = _tmp;
       isLoaded = true;
     });
   }
 
+  Future uploadProductType({isUpdate:'false',productTypeId: ''})async{
+    if(_productType.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
+      return;
+    }
+    Map<String, double> currentLocation = _authentication.getCurrentPosition();
+    Map<String, String> postTypeData = {
+      'is_update': isUpdate,
+      'product_type_id': productTypeId,
+      'category_id': _type[_categorySelect]['id'],
+      'name': _productType.text,
+      'status': _productStatus ? '1' : '0',
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString()
+    };
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproducttype.php',body: postTypeData);
+    print(res.body);
+  }
+
+  Future addProductType()async{
+    await showDialog(context: context, builder: (BuildContext context){
+      return AlertDialog(
+        content: Container(
+          height: 321,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
+          child: Column(
+            children: <Widget>[
+              Container(
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      margin: EdgeInsets.only(right: 15),
+                      child: Icon(IconData(
+                          int.parse(_posService.getPosIcon()),
+                          fontFamily: 'MaterialIcons')),
+                    ),
+                    Container(
+                      child: Text(
+                        '${_type[_categorySelect]['name']} / ',
+                        style: _appFontStyle.getSmallButtonText(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(
+                color: Color(0xffc5c5c5),
+              ),
+              Container(
+                margin: EdgeInsets.only(bottom: 15, top: 15),
+                padding: EdgeInsets.only(left: 15, right: 15),
+                alignment: Alignment.centerLeft,
+                height: 50,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Color.fromRGBO(0, 0, 0, 0.3),
+                          blurRadius: 3)
+                    ]),
+                child: TextField(
+                  controller: _productType,
+                  style: _appFontStyle.getNormalText(),
+                  decoration: InputDecoration.collapsed(
+                    hintText: _languageServices.getText('name'),
+                  ),
+                ),
+              ),
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Container(
+                      margin: EdgeInsets.only(right: 15),
+                      child: Text(
+                        "Online",
+                        style: _appFontStyle.getNormalText(),
+                      ),
+                    ),
+                    Container(
+                      child: Transform.scale(
+                        scale: 1.5,
+                        child: Switch(
+                          activeColor:
+                          Color(int.parse(_posService.getPosColor())),
+                          value: _productStatus,
+                          onChanged: (bool newValue) {
+                            setState(() {
+                              _productStatus = !_productStatus;
+                            });
+                          },
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Container(),
+              ),
+              Container(
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          clearCategory();
+                          Navigator.of(context).pop();
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.only(
+                              left: 15, right: 15, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            color: Color(0xffD66B6B),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Column(
+                            children: <Widget>[
+                              Container(
+                                child: Icon(
+                                  Icons.clear,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Container(
+                                child: Text(
+                                  _languageServices.getText('back'),
+                                  style: _appFontStyle.getLightText(
+                                      color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 15),
+                    Expanded(
+                      flex: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isLoaded = false;
+                          });
+                          uploadProductType().then((e){
+                            loadCategoryType(_categorySelect);
+                            Navigator.of(context).pop();
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.only(
+                              left: 15, right: 15, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            color: Color(0xff0076A2),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Column(
+                            children: <Widget>[
+                              Container(
+                                child: Icon(
+                                  Icons.check_box,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Container(
+                                child: Text(
+                                  _languageServices.getText('confirm'),
+                                  style: _appFontStyle.getLightText(
+                                      color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Future editProductType(List<dynamic> productTypeData)async{
+    String product_type_id = productTypeData[0];
+    setState(() {
+      _productType.text = productTypeData[2];
+      _productStatus = productTypeData[3] == '1' ? true : false;
+    });
+    await showDialog(context: context, builder: (BuildContext context){
+      return AlertDialog(
+        content: Container(
+          height: 321,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
+          child: Column(
+            children: <Widget>[
+              Container(
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      margin: EdgeInsets.only(right: 15),
+                      child: Icon(IconData(
+                          int.parse(_posService.getPosIcon()),
+                          fontFamily: 'MaterialIcons')),
+                    ),
+                    Container(
+                      child: Text(
+                        '${_type[_categorySelect]['name']} / ',
+                        style: _appFontStyle.getSmallButtonText(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(
+                color: Color(0xffc5c5c5),
+              ),
+              Container(
+                margin: EdgeInsets.only(bottom: 15, top: 15),
+                padding: EdgeInsets.only(left: 15, right: 15),
+                alignment: Alignment.centerLeft,
+                height: 50,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Color.fromRGBO(0, 0, 0, 0.3),
+                          blurRadius: 3)
+                    ]),
+                child: TextField(
+                  controller: _productType,
+                  style: _appFontStyle.getNormalText(),
+                  decoration: InputDecoration.collapsed(
+                    hintText: _languageServices.getText('name'),
+                  ),
+                ),
+              ),
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Container(
+                      margin: EdgeInsets.only(right: 15),
+                      child: Text(
+                        "Online",
+                        style: _appFontStyle.getNormalText(),
+                      ),
+                    ),
+                    Container(
+                      child: Transform.scale(
+                        scale: 1.5,
+                        child: Switch(
+                          activeColor:
+                          Color(int.parse(_posService.getPosColor())),
+                          value: _productStatus,
+                          onChanged: (bool newValue) {
+                            setState(() {
+                              _productStatus = !_productStatus;
+                            });
+                          },
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Container(),
+              ),
+              Container(
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          clearProductType();
+                          Navigator.of(context).pop();
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.only(
+                              left: 15, right: 15, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            color: Color(0xffD66B6B),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Column(
+                            children: <Widget>[
+                              Container(
+                                child: Icon(
+                                  Icons.clear,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Container(
+                                child: Text(
+                                  _languageServices.getText('back'),
+                                  style: _appFontStyle.getLightText(
+                                      color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 15),
+                    Expanded(
+                      flex: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isLoaded = false;
+                          });
+                          uploadProductType(isUpdate: 'true',productTypeId: product_type_id).then((e){
+                            loadCategoryType(_categorySelect);
+                            Navigator.of(context).pop();
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.only(
+                              left: 15, right: 15, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            color: Color(0xff0076A2),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Column(
+                            children: <Widget>[
+                              Container(
+                                child: Icon(
+                                  Icons.check_box,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Container(
+                                child: Text(
+                                  _languageServices.getText('confirm'),
+                                  style: _appFontStyle.getLightText(
+                                      color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+
+    Map<String, String> postTypeData = {
+      'category_id': _type[_categorySelect]['id'],
+      'name': _productType.text,
+      'status': _productStatus ? '1' : '0',
+    };
+    print(postTypeData);
+  }
+
+  Future loadCategoryType(int index)async{
+    setState(() {
+      isLoaded = false;
+      _productTypeSelect = 0;
+    });
+    String tmp = _type[index]['id'];
+    http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getproducttype.php?category_id=${tmp}');
+    List<dynamic> _productType = jsonDecode(res.body);
+    print(_productType);
+    setState(() {
+      productType = _productType;
+      isLoaded = true;
+    });
+  }
+
+  void categoryTypeReorder(int oldIndex, int newIndex){
+    setState(() {
+      productType.insert(newIndex, productType.removeAt(oldIndex));
+    });
+  }
+
   void _onReorder(int oldIndex, int newIndex) {
     setState(() {
       _list.insert(newIndex, _list.removeAt(oldIndex));
+    });
+  }
+
+  void categoryReoder(int oldIndex, int newIndex) {
+    setState(() {
+      _type.insert(newIndex, _type.removeAt(oldIndex));
     });
   }
 
@@ -131,8 +1066,9 @@ class _main_page extends State<main_page> {
     _posService = Provider.of<POSService>(context);
     if (!isLoaded) {
       onEntry().then((e) {
-        loadCategoryData();
-        print(_posService.getPermissionId());
+        loadCategoryData().then((e){
+          loadCategoryType(0);
+        });
       });
     }
   }
@@ -390,115 +1326,235 @@ class _main_page extends State<main_page> {
                         child: Column(
                           children: <Widget>[
                             Container(
-                              padding: EdgeInsets.only(left: 15, right: 15),
-                              height: 85,
-                              color: Color(0xffe8e8e8),
-                              child: _posService.getPermissionId() == '1' ? ListView.builder(
-                                itemCount: _type.length + 1,
-                                scrollDirection: Axis.horizontal,
-                                itemBuilder: (BuildContext context, int index){
-                                  if(index == _type.length){
-                                    return Container(
-                                        margin: EdgeInsets.only(right: 25),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                          children: <Widget>[
-                                            Container(
-                                              margin: EdgeInsets.only(bottom: 2),
-                                              height: 40,
-                                              width: 40,
-                                              decoration: BoxDecoration(color: Color(0xffc9c9c9), shape: BoxShape.circle),
-                                              child: Icon(Icons.add_to_photos,color: Color(0xff757575),),
-                                            ),
-                                            Container(
-                                              child: Text(
-                                                _languageServices.getText('add'),
-                                                style:
-                                                _appFontStyle.getNormalText(),
-                                              ),
-                                            )
-                                          ],)
-                                    );
-                                  }
-                                  return Container(
-                                      margin: EdgeInsets.only(right: 25),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Stack(
-                                            children: <Widget>[
-                                              Container(
-                                                margin: EdgeInsets.only(bottom: 2),
-                                                height: 40,
-                                                width: 40,
-                                                decoration: BoxDecoration(
-                                                    color: Color(0xff333333),
-                                                    shape: BoxShape.circle),
-                                              ),
-                                              Positioned(
-                                                top: 0,
-                                                right: 0,
-                                                child: GestureDetector(
-                                                  onTap: (){
-                                                    showDialog(context: context,builder: (BuildContext context){
-                                                      return AlertDialog(
-                                                        title: Text("ยืนยันการลบหรือไม่?",style: _appFontStyle.getSmallButtonText(),),
-                                                        actions: <Widget>[
-                                                          FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ยกเลิก")),
-                                                          FlatButton(onPressed: (){deleteCategory(_type[index]['id']);},child: Text("ยืนยัน")),
-                                                        ],
-                                                      );
-                                                    });
-                                                  },
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: Colors.redAccent
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                      child: isEdit
+                                          ? Container(
+                                              padding: EdgeInsets.only(
+                                                  left: 15, right: 15),
+                                              height: 85,
+                                              alignment: Alignment.centerLeft,
+                                              color: Color(0xffe8e8e8),
+                                              child: SingleChildScrollView(
+                                                child: Row(
+                                                  children: <Widget>[
+                                                    ReorderableWrap(
+                                                      spacing: 15,
+                                                      scrollDirection:
+                                                          Axis.horizontal,
+                                                      onReorder: categoryReoder,
+                                                      children: List.generate(
+                                                          _type.length,
+                                                          (int index) {
+                                                        if (index ==
+                                                            _type.length - 1) {
+                                                          return GestureDetector(
+                                                            onTap: () {
+                                                              addCategory();
+                                                            },
+                                                            child: Container(
+                                                              child: Column(
+                                                                children: <
+                                                                    Widget>[
+                                                                  Container(
+                                                                    margin: EdgeInsets.only(
+                                                                        bottom:
+                                                                            5),
+                                                                    height: 40,
+                                                                    width: 40,
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      shape: BoxShape
+                                                                          .circle,
+                                                                      color: Color(
+                                                                          0xffb1b1b1),
+                                                                    ),
+                                                                    child: Icon(
+                                                                      Icons
+                                                                          .add_to_photos,
+                                                                      color: Color(
+                                                                          0xff656565),
+                                                                    ),
+                                                                  ),
+                                                                  Container(
+                                                                    child: Text(
+                                                                      _languageServices
+                                                                          .getText(
+                                                                              'add'),
+                                                                      style: _appFontStyle
+                                                                          .getNormalText(),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          );
+                                                        }
+                                                        return Column(
+                                                          children: <Widget>[
+                                                            Container(
+                                                              child: Stack(
+                                                                children: <
+                                                                    Widget>[
+                                                                  Opacity(
+                                                                    opacity:
+                                                                        _type[index]['status'] !=
+                                                                                '1'
+                                                                            ? 0.3
+                                                                            : 1,
+                                                                    child:
+                                                                        GestureDetector(
+                                                                      onTap:
+                                                                          () {
+                                                                        editCategory(
+                                                                            _type[index]);
+                                                                      },
+                                                                      child:
+                                                                          Container(
+                                                                        margin: EdgeInsets.only(
+                                                                            bottom:
+                                                                                5),
+                                                                        height:
+                                                                            40,
+                                                                        width:
+                                                                            40,
+                                                                        decoration: BoxDecoration(
+                                                                            shape:
+                                                                                BoxShape.circle,
+                                                                            color: Color(0xffa1a1a1),
+                                                                            image: DecorationImage(image: _type[index]['image'] == null ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosCategory/${_type[index]['image']}'), fit: BoxFit.cover)),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Positioned(
+                                                                    top: 0,
+                                                                    right: 0,
+                                                                    child:
+                                                                        GestureDetector(
+                                                                      onTap:
+                                                                          () {
+                                                                        showDialog(
+                                                                            context:
+                                                                                context,
+                                                                            builder:
+                                                                                (BuildContext context) {
+                                                                              return AlertDialog(
+                                                                                title: Text(
+                                                                                  "ยืนยันการลบหรือไม่?",
+                                                                                  style: _appFontStyle.getSmallButtonText(),
+                                                                                ),
+                                                                                actions: <Widget>[
+                                                                                  FlatButton(
+                                                                                    onPressed: () {
+                                                                                      Navigator.of(context).pop();
+                                                                                    },
+                                                                                    child: Text("ยกเลิก"),
+                                                                                  ),
+                                                                                  FlatButton(
+                                                                                    onPressed: () {
+                                                                                      deleteCategory(_type[index]['id']);
+                                                                                    },
+                                                                                    child: Text("ยืนยัน"),
+                                                                                  )
+                                                                                ],
+                                                                              );
+                                                                            });
+                                                                      },
+                                                                      child:
+                                                                          Container(
+                                                                        decoration: BoxDecoration(
+                                                                            color:
+                                                                                Colors.redAccent,
+                                                                            shape: BoxShape.circle),
+                                                                        child:
+                                                                            Icon(
+                                                                          Icons
+                                                                              .remove,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          size:
+                                                                              18,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            Container(
+                                                              child: Text(
+                                                                _type[index]
+                                                                    ['name'],
+                                                                style: _appFontStyle
+                                                                    .getNormalText(),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      }),
                                                     ),
-                                                    child: Icon(Icons.remove,color: Colors.white,size: 19,),
-                                                  ),
+                                                  ],
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                          Container(
-                                            child: Text(
-                                              _type[index]['name'],
-                                              style:
-                                              _appFontStyle.getNormalText(),
+                                            )
+                                          : Container(
+                                              padding: EdgeInsets.only(
+                                                  left: 15, right: 15),
+                                              height: 85,
+                                              alignment: Alignment.centerLeft,
+                                              color: Color(0xffe8e8e8),
+                                            child: ListView.builder(
+                                              padding: EdgeInsets.zero,
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount: _type.length -1 ,
+                                              itemBuilder: (BuildContext context, int index){
+                                                if(_type[index]['status'] == '1'){
+                                                  return GestureDetector(
+                                                    onTap: (){
+                                                      setState(() {
+                                                        _categorySelect = index;
+                                                        loadCategoryType(_categorySelect);
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      margin: EdgeInsets.only(right: 15),
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: <Widget>[
+                                                          Container(
+                                                            margin: EdgeInsets.only(bottom: 5),
+                                                            height:
+                                                            40,
+                                                            width:
+                                                            40,
+                                                            decoration: BoxDecoration(
+                                                                shape:
+                                                                BoxShape.circle,
+                                                                color: Color(0xffa1a1a1),
+                                                                image: DecorationImage(image: _type[index]['image'] == null ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosCategory/${_type[index]['image']}'), fit: BoxFit.cover),
+                                                                border: Border.all(color: Color(_categorySelect != index ? 0xff : int.parse(_posService.getPosColor())),width: _categorySelect == index ? 3 : 0)
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            child: Text(
+                                                              _type[index]
+                                                              ['name'],
+                                                              style: _appFontStyle
+                                                                  .getNormalText(),
+                                                            ),
+                                                          ),
+                                                        ],
+
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                                return Container();
+                                              },
                                             ),
-                                          )
-                                        ],));
-                                },
-                              ):ReorderableWrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: List.generate(_type.length, (int index){
-                                  return Container(
-                                      margin: EdgeInsets.only(right: 25),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          Container(
-                                            margin: EdgeInsets.only(bottom: 2),
-                                            height: 40,
-                                            width: 40,
-                                            decoration: BoxDecoration(
-                                                color: Color(0xff333333),
-                                                shape: BoxShape.circle),
-                                          ),
-                                          Container(
-                                            child: Text(
-                                              _type[index]['name'],
-                                              style:
-                                              _appFontStyle.getNormalText(),
-                                            ),
-                                          )
-                                        ],));
-                                }),
+                                            ),),
+                                ],
                               ),
                             ),
                             Container(
@@ -507,175 +1563,341 @@ class _main_page extends State<main_page> {
                               color: Colors.white,
                               child: Row(
                                 children: <Widget>[
-                                  Container(
-                                    margin: EdgeInsets.only(right: 25),
-                                    child: Text(
-                                      "Pizza",
-                                      style: _appFontStyle.getSmallButtonText(
-                                          color: Color(int.parse(
-                                              _posService.getPosColor()))),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(right: 25),
-                                    child: Text(
-                                      "Pasta",
-                                      style: _appFontStyle.getSmallButtonText(
-                                          color: Color(0xff656565)),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(right: 25),
-                                    child: Text(
-                                      "Burger",
-                                      style: _appFontStyle.getSmallButtonText(
-                                          color: Color(0xff656565)),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(right: 25),
-                                    child: Text(
-                                      "Appetizers",
-                                      style: _appFontStyle.getSmallButtonText(
-                                          color: Color(0xff656565)),
+                                  Expanded(
+                                    child: isEdit ? Container(
+                                      child: SingleChildScrollView(
+                                        child: ReorderableWrap(
+                                          onReorder: categoryTypeReorder,
+                                          scrollDirection: Axis.horizontal,
+                                          children: List.generate(productType == null ? 0 : productType.length+1, (int index){
+                                            if(index == productType.length){
+                                              return GestureDetector(
+                                                onTap: (){
+                                                  addProductType();
+                                                },
+                                                child: Container(
+                                                  alignment: Alignment.center,
+                                                  margin: EdgeInsets.only(right: 25),
+                                                  child: Row(
+                                                    children: <Widget>[
+                                                      Container(
+                                                        margin: EdgeInsets.only(right: 5),
+                                                        child: Icon(Icons.add_to_photos,color: Color(0xff757575),size: 18,),
+                                                      ),
+                                                      Container(
+                                                        child: Text(
+                                                          _languageServices.getText('add'),
+                                                          style: _appFontStyle.getSmallButtonText(color: Colors.grey),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return Container(
+                                              child: Stack(
+                                                children: <Widget>[
+                                                  GestureDetector(
+                                                    onTap: (){
+                                                      setState(() {
+                                                        editProductType(productType[index]);
+                                                      });
+                                                    },
+                                                    child: Container(
+                                                      alignment: Alignment.center,
+                                                      margin: EdgeInsets.only(right: 25),
+                                                      child: Text(
+                                                        productType[index][2],
+                                                        style: _appFontStyle.getSmallButtonText(
+                                                            color: _productTypeSelect == index ? Color(int.parse(_posService.getPosColor())):Colors.grey),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Positioned(
+                                                    top: 0,
+                                                    right: 11,
+                                                    child:
+                                                    GestureDetector(
+                                                      onTap: () {
+                                                        showDialog(
+                                                            context:
+                                                            context,
+                                                            builder:
+                                                                (BuildContext context) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                  "ยืนยันการลบหรือไม่?",
+                                                                  style: _appFontStyle.getSmallButtonText(),
+                                                                ),
+                                                                actions: <Widget>[
+                                                                  FlatButton(
+                                                                    onPressed: () {
+                                                                      Navigator.of(context).pop();
+                                                                    },
+                                                                    child: Text("ยกเลิก"),
+                                                                  ),
+                                                                  FlatButton(
+                                                                    onPressed: () {
+                                                                      deleteProductType(productType[index][0]);
+                                                                    },
+                                                                    child: Text("ยืนยัน"),
+                                                                  )
+                                                                ],
+                                                              );
+                                                            });
+                                                      },
+                                                      child: Container(
+                                                        alignment:
+                                                        Alignment
+                                                            .center,
+                                                        decoration: BoxDecoration(
+                                                            color: Colors
+                                                                .redAccent,
+                                                            shape: BoxShape
+                                                                .circle),
+                                                        child: Icon(
+                                                          Icons.remove,
+                                                          size: 15,
+                                                          color: Colors
+                                                              .white,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }),
+                                        ),
+                                      ),
+                                    ):Container(
+                                      child: ListView.builder(
+                                        scrollDirection: Axis.horizontal,
+                                        itemCount: productType == null ? 0 : productType.length,
+                                        itemBuilder: (BuildContext context, int index){
+                                          return productType[index][3] == '1' ? GestureDetector(
+                                            onTap: (){
+                                              setState(() {
+                                                _productTypeSelect = index;
+                                              });
+                                            },
+                                            child: Container(
+                                              alignment: Alignment.center,
+                                              margin: EdgeInsets.only(right: 25),
+                                              child: Text(
+                                                productType[index][2],
+                                                style: _appFontStyle.getSmallButtonText(
+                                                    color: _productTypeSelect == index ? Color(int.parse(_posService.getPosColor())):Colors.grey),
+                                              ),
+                                            ),
+                                          ):Container();
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             Expanded(
-                              child: _posService.getPermissionId() == '1'
-                                  ? ReorderableWrap(
-                                      padding: EdgeInsets.only(top: 10),
-                                      spacing: 10,
-                                      runSpacing: 10,
-                                      children: List.generate(_list.length + 1,
-                                          (index) {
-                                        if (index == _list.length) {
-                                          return Container(
-                                            margin: EdgeInsets.only(bottom: 15),
-                                            height: _posService.getWidth() / _posService.getRowNumber() - 45,
-                                            width: _posService.getWidth() / _posService.getRowNumber() - 15,
-                                            decoration: BoxDecoration(color: Color(0xffe1e1e1), borderRadius: BorderRadius.all(Radius.circular(10))),
-                                            child: Icon(Icons.add_to_photos,color: Color(0xff757575),),
-                                          );
-                                        }
-                                        return Container(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: <Widget>[
-                                              Container(
-                                                child: Stack(
+                                child: isEdit
+                                    ? Container(
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.vertical,
+                                          child: ReorderableWrap(
+                                            padding: EdgeInsets.only(top: 10),
+                                            spacing: 20,
+                                            runSpacing: 20,
+                                            children: List.generate(
+                                                _list.length, (index) {
+                                              if (index == _list.length - 1) {
+                                                return Container(
+                                                  margin: EdgeInsets.only(
+                                                      bottom: 15),
+                                                  height: _posService
+                                                              .getWidth() /
+                                                          _posService
+                                                              .getRowNumber() -
+                                                      25,
+                                                  width: _posService
+                                                              .getWidth() /
+                                                          _posService
+                                                              .getRowNumber() -
+                                                      25,
+                                                  decoration: BoxDecoration(
+                                                      color: Color(0xffe1e1e1),
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  10))),
+                                                  child: Icon(
+                                                    Icons.add_to_photos,
+                                                    color: Color(0xff757575),
+                                                  ),
+                                                );
+                                              }
+                                              return Container(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: <Widget>[
                                                     Container(
-                                                      height: _posService.getWidth() / _posService.getRowNumber() - 45,
-                                                      width: _posService.getWidth() / _posService.getRowNumber() - 15,
-                                                      decoration: BoxDecoration(
-                                                          color: Color(int.parse(_posService.getPosColor())),
-                                                          borderRadius: BorderRadius.all(Radius.circular(10))),
-                                                    ),
-                                                    Positioned(
-                                                      top: 0,
-                                                      right: 0,
-                                                      child: GestureDetector(
-                                                        onTap: () {
-                                                          setState(() {
-                                                            _list.removeAt(
-                                                                index);
-                                                          });
-                                                        },
-                                                        child: Container(
-                                                          alignment:
-                                                              Alignment.center,
-                                                          decoration: BoxDecoration(
-                                                              color: Colors
-                                                                  .redAccent,
-                                                              shape: BoxShape
-                                                                  .circle),
-                                                          child: Icon(
-                                                            Icons.remove,
-                                                            color: Colors.white,
+                                                      child: Stack(
+                                                        children: <Widget>[
+                                                          Container(
+                                                            height: _posService
+                                                                        .getWidth() /
+                                                                    _posService
+                                                                        .getRowNumber() -
+                                                                25,
+                                                            width: _posService
+                                                                        .getWidth() /
+                                                                    _posService
+                                                                        .getRowNumber() -
+                                                                25,
+                                                            decoration: BoxDecoration(
+                                                                color: Color(int
+                                                                    .parse(_posService
+                                                                        .getPosColor())),
+                                                                borderRadius: BorderRadius
+                                                                    .all(Radius
+                                                                        .circular(
+                                                                            10))),
                                                           ),
-                                                        ),
+                                                          Positioned(
+                                                            top: 0,
+                                                            right: 0,
+                                                            child:
+                                                                GestureDetector(
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  _list.removeAt(
+                                                                      index);
+                                                                });
+                                                              },
+                                                              child: Container(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                decoration: BoxDecoration(
+                                                                    color: Colors
+                                                                        .redAccent,
+                                                                    shape: BoxShape
+                                                                        .circle),
+                                                                child: Icon(
+                                                                  Icons.remove,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      child: Text(
+                                                        _list[index],
+                                                        style: _appFontStyle
+                                                            .getSmallButtonText(),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      child: Text(
+                                                        '100\$',
+                                                        style: _appFontStyle
+                                                            .getNormalText(
+                                                                color: Color(
+                                                                    0xff656565)),
                                                       ),
                                                     ),
                                                   ],
                                                 ),
-                                              ),
-                                              Container(
-                                                child: Text(
-                                                  _list[index],
-                                                  style: _appFontStyle
-                                                      .getSmallButtonText(),
-                                                ),
-                                              ),
-                                              Container(
-                                                child: Text(
-                                                  '100\$',
-                                                  style: _appFontStyle
-                                                      .getNormalText(
-                                                          color: Color(
-                                                              0xff656565)),
-                                                ),
-                                              ),
-                                            ],
+                                              );
+                                            }),
+                                            onReorder: _onReorder,
                                           ),
-                                        );
-                                      }),
-                                      onReorder: _onReorder,
-                                    )
-                                  : Container(
-                                      padding: EdgeInsets.only(top: 10),
-                                      child: GridView.count(
-                                        padding: EdgeInsets.only(
-                                            left: 15, right: 15, top: 0),
-                                        crossAxisCount:
-                                            _posService.getRowNumber(),
-                                        mainAxisSpacing: 15,
-                                        crossAxisSpacing: 15,
-                                        children: List.generate(_list.length,
-                                            (index) {
-                                          return Container(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: <Widget>[
-                                                Expanded(
+                                        ),
+                                      )
+                                    : Container(
+                                        padding: EdgeInsets.only(top: 10),
+                                        child: ListView(
+                                          shrinkWrap: true,
+                                          padding: EdgeInsets.only(
+                                              left: 15,
+                                              right: 15,
+                                              top: 0,
+                                              bottom: 15),
+                                          children: <Widget>[
+                                            Wrap(
+                                              alignment:
+                                                  WrapAlignment.start,
+                                              runSpacing: 10,
+                                              spacing: _posService.getRowNumber() == 2 ? 20: 22,
+                                              children: List.generate(
+                                                  _list.length - 1, (index) {
+                                                return GestureDetector(
+                                                  onLongPress: (){
+                                                    setState(() {
+                                                      isEdit = true;
+                                                    });
+                                                  },
                                                   child: Container(
-                                                    decoration: BoxDecoration(
-                                                        color: Color(int.parse(
-                                                            _posService
-                                                                .getPosColor())),
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    10))),
+//                                                    margin: EdgeInsets.only(right: 15),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: <Widget>[
+                                                        Container(
+                                                          height: _posService
+                                                                      .getWidth() /
+                                                                  _posService
+                                                                      .getRowNumber() -
+                                                              25,
+                                                          width: _posService
+                                                                      .getWidth() /
+                                                                  _posService
+                                                                      .getRowNumber() -
+                                                              25,
+                                                          decoration: BoxDecoration(
+                                                              color: Color(int
+                                                                  .parse(_posService
+                                                                      .getPosColor())),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .all(Radius
+                                                                          .circular(
+                                                                              10))),
+                                                        ),
+                                                        Container(
+                                                          width: _posService
+                                                              .getWidth() /
+                                                              _posService
+                                                                  .getRowNumber() -
+                                                              25,
+                                                          child: Text(productType[_productTypeSelect].toString(),
+                                                            style: _appFontStyle.getSmallButtonText(),
+                                                          ),
+                                                        ),
+                                                        Container(
+                                                          child: Text(
+                                                            '100\$',
+                                                            style: _appFontStyle
+                                                                .getNormalText(
+                                                                    color: Color(
+                                                                        0xff656565)),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
-                                                ),
-                                                Container(
-                                                  child: Text(
-                                                    _list[index],
-                                                    style: _appFontStyle
-                                                        .getSmallButtonText(),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  child: Text(
-                                                    '100\$',
-                                                    style: _appFontStyle
-                                                        .getNormalText(
-                                                            color: Color(
-                                                                0xff656565)),
-                                                  ),
-                                                ),
-                                              ],
+                                                );
+                                              }),
                                             ),
-                                          );
-                                        }),
-                                      ),
-                                    ),
-                            ),
+                                          ],
+                                        ),
+                                      )),
                           ],
                         ),
                       ),
@@ -783,6 +2005,35 @@ class _main_page extends State<main_page> {
                               ],
                             ),
                           ),
+                          isEdit ? Expanded(
+                            child: GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  isEdit = false;
+                                });
+                              },
+                              child: Container(
+                                alignment: Alignment.center,
+                                margin: EdgeInsets.only(left: 25),
+                                height: 55,
+                                decoration: BoxDecoration(
+                                  color: Color(int.parse(_posService.getPosColor())),
+                                  borderRadius: BorderRadius.all(Radius.circular(20))
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Container(
+                                      child: Icon(Icons.check_box,color: Colors.white,),
+                                    ),
+                                    Container(
+                                      child: Text(_languageServices.getText('confirm'),style: _appFontStyle.getLightText(color: Colors.white),),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ):
                           Container(
                             height: 65,
                             child: Stack(

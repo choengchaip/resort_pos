@@ -108,11 +108,28 @@ class _addbusiness_page extends State<addbusiness_page>{
               height: _paddingTop,
             ),
             Container(
+              height: 50,
               margin: EdgeInsets.only(bottom: 15),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _languageServices.getText('business'),
-                style: _appFontStyle.getTopBarText(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _languageServices.getText('business'),
+                      style: _appFontStyle.getTopBarText(),
+                    ),
+                  ),
+                ],
               ),
             ),
             Container(
@@ -217,6 +234,7 @@ class _addbusiness_page extends State<addbusiness_page>{
               child: Container(),
             ),
             Container(
+              margin: EdgeInsets.only(bottom: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[

@@ -36,6 +36,7 @@ class _addpos_page extends State<addpos_page>{
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
     // TODO: implement build
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       body: Container(
         padding: EdgeInsets.only(left: 15, right: 15),
         child: Column(
@@ -44,11 +45,28 @@ class _addpos_page extends State<addpos_page>{
               height: _paddingTop,
             ),
             Container(
+              height: 50,
               margin: EdgeInsets.only(bottom: 15),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "POS",
-                style: _appFontStyle.getTopBarText(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "POS",
+                      style: _appFontStyle.getTopBarText(),
+                    ),
+                  ),
+                ],
               ),
             ),
             Container(
@@ -90,6 +108,7 @@ class _addpos_page extends State<addpos_page>{
               ),
             ),
             Container(
+              margin: EdgeInsets.only(bottom: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -126,7 +145,7 @@ class _addpos_page extends State<addpos_page>{
                       if(_posName.text.isEmpty){
                         await showDialog(context: context,builder: (BuildContext context){
                           return AlertDialog(
-                            title: Text("กรุณาใส่ชื่อ",style: _appFontStyle.getSmallButtonText(),),
+                            title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
                             actions: <Widget>[
                               FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
                             ],

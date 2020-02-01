@@ -186,6 +186,7 @@ class _home_page extends State<home_page> {
                       }));
                     },
                     child: Container(
+                      margin: EdgeInsets.only(bottom: 15),
                       height: 55,
                       decoration: BoxDecoration(
                           color: Colors.white,

@@ -49,11 +49,12 @@ class _terms_page extends State<terms_page> {
   Widget build(BuildContext context) {
     double _paddingTop = MediaQuery.of(context).padding.top;
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
+    double _width = MediaQuery.of(context).size.width;
     // TODO: implement build
     return Scaffold(
       body: isLoaded ? Container(
         color: Color(0xffF4F4F4),
-        padding: EdgeInsets.only(left: 15, right: 15),
+        padding: EdgeInsets.only(left: 25, right: 25),
         child: Column(
           children: <Widget>[
             SizedBox(
@@ -69,6 +70,7 @@ class _terms_page extends State<terms_page> {
             ),
             Expanded(
               child: Container(
+                  margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                 alignment: Alignment.topLeft,
                 padding: EdgeInsets.all(15),
                 decoration: BoxDecoration(
@@ -95,13 +97,13 @@ class _terms_page extends State<terms_page> {
                 }));
               },
               child: Container(
-                margin: EdgeInsets.only(top: 15),
+                margin: EdgeInsets.only(top: 15,left: 5, right: 5),
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 300),
                   alignment: Alignment.center,
                   margin: EdgeInsets.only(bottom: 15),
                   padding: EdgeInsets.only(left: 15, right: 15),
-                  height: 55,
+                  height: _width/8.5,
                   decoration: BoxDecoration(
                     color: Color(0xff0092C7),
                     borderRadius: BorderRadius.all(Radius.circular(25)),

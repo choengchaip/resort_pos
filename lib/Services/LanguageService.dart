@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:resort_pos/Services/Authentication.dart';
@@ -49,7 +48,8 @@ class LanguageServices extends ChangeNotifier{
   }
 
   Future loadDefaultLanguage()async{
-    await initLanguage(1);
+    http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/languageservice/getdefaultlanguage.php');
+    await initLanguage(res.body);
   }
 
   String getLanguageId(){

@@ -66,6 +66,7 @@ class _add_profile extends State<add_profile> {
         );
       });
       if(_authentication.getUserAvatar() != null){
+        Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
           return home_page();
         }));
@@ -86,6 +87,7 @@ class _add_profile extends State<add_profile> {
     });
     if(res.body == '1'){
       _authentication.setUserAvatar('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${imageName}.jpg');
+      Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
         return home_page();
       }));
@@ -97,13 +99,35 @@ class _add_profile extends State<add_profile> {
 
   @override
   Widget build(BuildContext context) {
+    double _paddingTop = MediaQuery.of(context).padding.top;
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
     // TODO: implement build
     return Scaffold(
       body: isLoaded ? Container(
+        padding: EdgeInsets.only(left: 15, right: 15),
         color: Color(0xffF4F4F4),
         child: Column(
           children: <Widget>[
+            SizedBox(
+              height: _paddingTop,
+            ),
+            Container(
+              height: 50,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: Container(
                 child: Center(
@@ -162,12 +186,14 @@ class _add_profile extends State<add_profile> {
               ),
             ),
             Container(
+              margin: EdgeInsets.only(bottom: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   GestureDetector(
                     onTap: (){
                       _authentication.setUserAvatar(null);
+                      Navigator.of(context).popUntil((route) => route.isFirst);
                       Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
                         return home_page();
                       }));

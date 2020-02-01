@@ -82,7 +82,8 @@ class _addicon_page extends State<addicon_page> {
       isLoaded = true;
     });
     if(res.body == '1'){
-      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context){
         return home_page();
       }));
     }
@@ -102,11 +103,28 @@ class _addicon_page extends State<addicon_page> {
               height: _paddingTop,
             ),
             Container(
+              height: 50,
               margin: EdgeInsets.only(bottom: 15),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "POS Icon",
-                style: _appFontStyle.getTopBarText(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "POS Icons",
+                      style: _appFontStyle.getTopBarText(),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -147,6 +165,7 @@ class _addicon_page extends State<addicon_page> {
               ),
             ),
             Container(
+              margin: EdgeInsets.only(bottom: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -186,10 +205,6 @@ class _addicon_page extends State<addicon_page> {
                   GestureDetector(
                     onTap: () {
                       uploadPosData();
-//                      Navigator.push(context,
-//                          MaterialPageRoute(builder: (BuildContext context) {
-//                        return addicon_page(_posData);
-//                      }));
                     },
                     child: Container(
                       alignment: Alignment.center,

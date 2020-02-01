@@ -65,6 +65,7 @@ class _login_page extends State<login_page> {
       _authentication.setUserName(resData[1]);
       _authentication.setUserEmail(resData[2]);
       _authentication.setUserAvatar(resData[3] == null ? null : resData[3].toString().substring(0,4) != 'http' ? '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${resData[3]}' : resData[3]);
+      Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (BuildContext context) {
         return home_page();
@@ -117,13 +118,13 @@ class _login_page extends State<login_page> {
       });
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่อีเมล",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('email')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(
               onPressed: (){
                 Navigator.of(context).pop();
               },
-              child: Text("ตกลง"),
+              child: Text(_languageServices.getText('confirm')),
             )
           ],
         );
@@ -136,13 +137,13 @@ class _login_page extends State<login_page> {
       });
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่รหัสผ่าน",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('password')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(
               onPressed: (){
                 Navigator.of(context).pop();
               },
-              child: Text("ตกลง"),
+              child: Text(_languageServices.getText('confirm')),
             )
           ],
         );
@@ -172,6 +173,7 @@ class _login_page extends State<login_page> {
       _authentication.setUserAvatar(userData[3] == null ? null : '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${userData[3]}');
       await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'email',
           password: _password.text);
+      Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context){
         return home_page();
       }));
@@ -181,7 +183,7 @@ class _login_page extends State<login_page> {
           builder: (BuildContext context) {
             return AlertDialog(
               content: Text(
-                "ไม่พบผู้ใช้",
+                _languageServices.getText('nouser'),
                 style: _appFontStyle.getTopBarText(),
               ),
               actions: <Widget>[
@@ -189,7 +191,7 @@ class _login_page extends State<login_page> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: Text("ตกลง"))
+                    child: Text(_languageServices.getText('confirm')))
               ],
             );
           });
@@ -266,6 +268,7 @@ class _login_page extends State<login_page> {
       _authentication.setUserAvatar(userData[3]);
       await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'facebook',
           providerid: facebookId);
+      Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (BuildContext context) {
         return home_page();
@@ -287,12 +290,13 @@ class _login_page extends State<login_page> {
   @override
   Widget build(BuildContext context) {
     double _paddingTop = MediaQuery.of(context).padding.top;
+    double _width = MediaQuery.of(context).size.width;
     // TODO: implement build
     return Scaffold(
         body: isLoaded
             ? Container(
                 color: Color(0xffF4F4F4),
-                padding: EdgeInsets.only(left: 15, right: 15),
+                padding: EdgeInsets.only(left: 25, right: 15),
                 child: Column(
                   children: <Widget>[
                     SizedBox(
@@ -316,9 +320,9 @@ class _login_page extends State<login_page> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
                                   Container(
-                                    margin: EdgeInsets.only(bottom: 20),
-                                    height: 120,
-                                    width: 120,
+                                    margin: EdgeInsets.only(bottom: 20,top: 5),
+                                    height: 100,
+                                    width: 100,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
                                         shape: BoxShape.circle,
@@ -338,10 +342,10 @@ class _login_page extends State<login_page> {
                               ),
                             ),
                             Container(
-                              margin: EdgeInsets.only(bottom: 15),
+                              margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
                               padding: EdgeInsets.only(left: 15, right: 15),
                               alignment: Alignment.centerLeft,
-                              height: 55,
+                              height: _width/8.5,
                               decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius:
@@ -361,10 +365,10 @@ class _login_page extends State<login_page> {
                               ),
                             ),
                             Container(
-                              margin: EdgeInsets.only(bottom: 15),
+                              margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
                               padding: EdgeInsets.only(left: 15, right: 15),
                               alignment: Alignment.centerLeft,
-                              height: 55,
+                              height: _width/8.5,
                               decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius:
@@ -390,9 +394,9 @@ class _login_page extends State<login_page> {
                               },
                               child: Container(
                                 alignment: Alignment.center,
-                                margin: EdgeInsets.only(bottom: 15),
+                                margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
                                 padding: EdgeInsets.only(left: 15, right: 15),
-                                height: 55,
+                                height: _width/8.5,
                                 decoration: BoxDecoration(
                                   color: Color(0xff0092C7),
                                   borderRadius:
@@ -407,7 +411,7 @@ class _login_page extends State<login_page> {
                               ),
                             ),
                             Container(
-                              margin: EdgeInsets.only(bottom: 20),
+                              margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: <Widget>[
@@ -420,7 +424,6 @@ class _login_page extends State<login_page> {
                                     },
                                     child: Container(
                                       child: Text(
-//                                languageData == null ? "Loading" : languageData['fogetYouPassword'],
                                         _languageServices
                                             .getText('fogetYouPassword'),
                                         style: _appFontStyle.getLightText(),
@@ -432,9 +435,8 @@ class _login_page extends State<login_page> {
                             ),
                             Container(
                               alignment: Alignment.center,
-                              margin: EdgeInsets.only(bottom: 20),
+                              margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
                               child: Text(
-//                        languageData == null ? "Loading" : languageData['singUp'],
                                 _languageServices.getText('singUp'),
                                 style: _appFontStyle.getLightText(),
                               ),
@@ -449,9 +451,9 @@ class _login_page extends State<login_page> {
                               },
                               child: Container(
                                   alignment: Alignment.center,
-                                  margin: EdgeInsets.only(bottom: 15),
+                                  margin: EdgeInsets.only(bottom: 5,left: 5,right: 5),
                                   padding: EdgeInsets.only(left: 15, right: 15),
-                                  height: 55,
+                                  height: _width/8.5,
                                   decoration: BoxDecoration(
                                     color: Color(0xffADADAD),
                                     borderRadius:
@@ -464,8 +466,7 @@ class _login_page extends State<login_page> {
                                         flex: 1,
                                         child: Container(
                                           alignment: Alignment.centerRight,
-                                          padding: EdgeInsets.only(
-                                              top: 16, bottom: 16, right: 15),
+                                          padding: EdgeInsets.only(top: 13, bottom: 13, right: 13),
                                           child: Image.asset(
                                               'assets/icons/mail.png'),
                                         ),
@@ -491,9 +492,9 @@ class _login_page extends State<login_page> {
                               },
                               child: Container(
                                   alignment: Alignment.center,
-                                  margin: EdgeInsets.only(bottom: 15),
+                                  margin: EdgeInsets.only(bottom: 5,left: 5,right: 5),
                                   padding: EdgeInsets.only(left: 15, right: 15),
-                                  height: 55,
+                                  height: _width/8.5,
                                   decoration: BoxDecoration(
                                     color: Color(0xff0076A2),
                                     borderRadius:
@@ -507,7 +508,7 @@ class _login_page extends State<login_page> {
                                         child: Container(
                                           alignment: Alignment.centerRight,
                                           padding: EdgeInsets.only(
-                                              top: 16, bottom: 16, right: 15),
+                                              top: 13, bottom: 13, right: 13),
                                           child: Image.asset(
                                               'assets/icons/facebook.png'),
                                         ),
@@ -534,9 +535,9 @@ class _login_page extends State<login_page> {
                               },
                               child: Container(
                                   alignment: Alignment.center,
-                                  margin: EdgeInsets.only(bottom: 15),
+                                  margin: EdgeInsets.only(bottom: 5,left: 5,right: 5),
                                   padding: EdgeInsets.only(left: 15, right: 15),
-                                  height: 55,
+                                  height: _width/8.5,
                                   decoration: BoxDecoration(
                                     color: Color(0xffDD4B39),
                                     borderRadius:
@@ -550,7 +551,7 @@ class _login_page extends State<login_page> {
                                         child: Container(
                                           alignment: Alignment.centerRight,
                                           padding: EdgeInsets.only(
-                                              top: 16, bottom: 16, right: 15),
+                                              top: 13, bottom: 13, right: 13),
                                           child: Image.asset(
                                               'assets/icons/google.png'),
                                         ),
@@ -572,9 +573,9 @@ class _login_page extends State<login_page> {
                             ),
                             Container(
                                 alignment: Alignment.center,
-                                margin: EdgeInsets.only(bottom: 15),
+                                margin: EdgeInsets.only(bottom: 5,left: 5,right: 5),
                                 padding: EdgeInsets.only(left: 15, right: 15),
-                                height: 55,
+                                height: _width/8.5,
                                 decoration: BoxDecoration(
                                   color: Color(0xff00A4E0),
                                   borderRadius:
@@ -588,7 +589,7 @@ class _login_page extends State<login_page> {
                                       child: Container(
                                         alignment: Alignment.centerRight,
                                         padding: EdgeInsets.only(
-                                            top: 16, bottom: 16, right: 15),
+                                            top: 13, bottom: 13, right: 13),
                                         child: Image.asset(
                                             'assets/icons/twitter.png'),
                                       ),

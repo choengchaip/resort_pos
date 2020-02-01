@@ -7,6 +7,7 @@ import 'package:resort_pos/Pages/SignUp/TermsPage.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:resort_pos/Services/SQLiteService.dart';
+import 'package:email_validator/email_validator.dart';
 
 class signup_form extends StatefulWidget {
   _signup_form createState() => _signup_form();
@@ -51,7 +52,7 @@ class _signup_form extends State<signup_form> {
     if(_firstname.text.isEmpty){
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่ชื่อ",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
           ],
@@ -62,7 +63,7 @@ class _signup_form extends State<signup_form> {
     if(_lastname.text.isEmpty){
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่นามสกุล",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('lastName')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
           ],
@@ -73,7 +74,7 @@ class _signup_form extends State<signup_form> {
     if(_telephone.text.isEmpty){
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่เบอร์มือถือ",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('mobileNo')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
           ],
@@ -81,10 +82,10 @@ class _signup_form extends State<signup_form> {
       });
       return;
     }
-    if(_email.text.isEmpty){
+    if(_email.text.isEmpty || !EmailValidator.validate(_email.text)){
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่อีเมล์",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('email')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
           ],
@@ -95,7 +96,7 @@ class _signup_form extends State<signup_form> {
     if(_password.text.isEmpty){
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่รหัสผ่าน",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('password')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
           ],
@@ -106,7 +107,7 @@ class _signup_form extends State<signup_form> {
     if(_birthday == null){
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
-          title: Text("กรุณาใส่วันเกิด",style: _appFontStyle.getSmallButtonText(),),
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('dateOfBirth')}",style: _appFontStyle.getSmallButtonText(),),
           actions: <Widget>[
             FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
           ],
@@ -149,11 +150,14 @@ class _signup_form extends State<signup_form> {
   Widget build(BuildContext context) {
     double _paddingTop = MediaQuery.of(context).padding.top;
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
+    double _width = MediaQuery.of(context).size.width;
+
     // TODO: implement build
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       body: Container(
         color: Color(0xffF4F4F4),
-        padding: EdgeInsets.only(left: 15, right: 15),
+        padding: EdgeInsets.only(left: 25, right: 25),
         child: Column(
           children: <Widget>[
             SizedBox(
@@ -173,10 +177,10 @@ class _signup_form extends State<signup_form> {
                   padding: EdgeInsets.zero,
                   children: <Widget>[
                     Container(
-                      margin: EdgeInsets.only(bottom: 15),
+                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: 55,
+                      height: _width/8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -193,9 +197,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15),
+                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: 55,
+                      height: _width/8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -212,9 +216,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15),
+                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: 55,
+                      height: _width/8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -224,6 +228,7 @@ class _signup_form extends State<signup_form> {
                                 blurRadius: 2)
                           ]),
                       child: TextField(
+                        keyboardType: TextInputType.phone,
                         controller: _telephone,
                         decoration: InputDecoration.collapsed(
                             hintText: _languageServices.getText('mobileNo')),
@@ -231,9 +236,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15),
+                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: 55,
+                      height: _width/8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -243,6 +248,7 @@ class _signup_form extends State<signup_form> {
                                 blurRadius: 2)
                           ]),
                       child: TextField(
+                        keyboardType: TextInputType.emailAddress,
                         controller: _email,
                         decoration: InputDecoration.collapsed(
                             hintText: _languageServices.getText('email')),
@@ -250,9 +256,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15),
+                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: 55,
+                      height: _width/8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -277,9 +283,9 @@ class _signup_form extends State<signup_form> {
                       },
                       child: Container(
                         alignment: Alignment.centerLeft,
-                        margin: EdgeInsets.only(bottom: 15),
+                        margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                         padding: EdgeInsets.only(left: 15, right: 15),
-                        height: 55,
+                        height: _width/8.5,
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -320,9 +326,9 @@ class _signup_form extends State<signup_form> {
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 300),
                   alignment: Alignment.center,
-                  margin: EdgeInsets.only(bottom: 15),
+                  margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
                   padding: EdgeInsets.only(left: 15, right: 15),
-                  height: 55,
+                  height: _width/8.5,
                   decoration: BoxDecoration(
                     color: Color(0xff0092C7),
                     borderRadius: BorderRadius.all(Radius.circular(25)),

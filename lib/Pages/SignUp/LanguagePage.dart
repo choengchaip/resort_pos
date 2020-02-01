@@ -36,6 +36,9 @@ class _language_page extends State<language_page>{
     _authentication = Provider.of<Authentication>(context);
     _languageServices = Provider.of<LanguageServices>(context,listen: false);
     if(!isLoaded){
+      setState(() {
+        currentLanguage = _languageServices.getLanguageId();
+      });
       loadLanguageList();
     }
   }
@@ -44,7 +47,6 @@ class _language_page extends State<language_page>{
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/languageservice/getlanguagelist.php');
     languageList = jsonDecode(res.body);
     setState(() {
-      print(languageList);
       isLoaded = true;
     });
   }
@@ -75,12 +77,12 @@ class _language_page extends State<language_page>{
   Widget build(BuildContext context) {
     double _paddingTop = MediaQuery.of(context).padding.top;
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
-
+    double _width = MediaQuery.of(context).size.width;
     // TODO: implement build
     return Scaffold(
       body: isLoaded ? Container(
         color: Color(0xffF4F4F4),
-        padding: EdgeInsets.only(left: 15, right: 15),
+        padding: EdgeInsets.only(left: 25, right: 25),
         child: Column(
           children: <Widget>[
             SizedBox(
@@ -90,7 +92,6 @@ class _language_page extends State<language_page>{
               margin: EdgeInsets.only(bottom: 15),
               alignment: Alignment.centerLeft,
               child: Text(
-//                languageData == null ? "Loading" : languageData['login'],
                 _languageServices.getText('singUp'),
                 style: _appFontStyle.getTopBarText(),
               ),
@@ -108,9 +109,9 @@ class _language_page extends State<language_page>{
                     child: AnimatedContainer(
                       duration: Duration(milliseconds: 300),
                       alignment: Alignment.center,
-                      margin: EdgeInsets.only(bottom: 15),
+                      margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: 55,
+                      height: _width/8.5,
                       decoration: BoxDecoration(
                         color: currentLanguage == languageList[index][0] ? Color(0xff0092C7) : Colors.white,
                         borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -132,9 +133,9 @@ class _language_page extends State<language_page>{
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 300),
                 alignment: Alignment.center,
-                margin: EdgeInsets.only(bottom: 15),
+                margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
                 padding: EdgeInsets.only(left: 15, right: 15),
-                height: 55,
+                height: _width/8.5,
                 decoration: BoxDecoration(
                   color: Color(0xff0092C7),
                   borderRadius: BorderRadius.all(Radius.circular(25)),
