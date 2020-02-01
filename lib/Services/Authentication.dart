@@ -13,8 +13,8 @@ class Authentication extends ChangeNotifier{
 //  final IP = 'chengchai.000webhostapp.com';
 //  final PORT = 80;
 
-  final IP = 'localhost';
-  final PORT = 8080;
+  final IP = '49.48.52.124';
+  final PORT = 80;
 
   get GETPROTOCAL => this.PROTOCAL;
   get GETIP => this.IP;

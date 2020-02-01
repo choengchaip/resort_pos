@@ -45,6 +45,14 @@ class _main_page extends State<main_page> {
   List<dynamic> productType;
   int _productTypeSelect;
   TextEditingController _productType = TextEditingController();
+  bool _productTypeStatus;
+
+  //Product
+  List<dynamic> productData;
+  TextEditingController _productName = TextEditingController();
+  TextEditingController _productPrice = TextEditingController();
+  File _productImage;
+  String _productImageName;
   bool _productStatus;
 
 
@@ -63,8 +71,13 @@ class _main_page extends State<main_page> {
     _categorySelect = 0;
 
     //ProductType
-    _productStatus = false;
+    _productTypeStatus = false;
     _productTypeSelect = 0;
+
+
+    //Product
+    _productStatus = false;
+
   }
 
   Future onEntry() async {
@@ -104,10 +117,8 @@ class _main_page extends State<main_page> {
       'pos_id': _posService.getPosId(),
       'name': _categoryName.text,
       'image_name': _categoryImageName,
-      'image': _categoryFile == null
-          ? ''
-          : base64Encode(_categoryFile.readAsBytesSync()),
-      'status': _categoryStatus ? '1' : '0',
+      'image': _categoryFile == null ? '' : base64Encode(_categoryFile.readAsBytesSync()),
+      'status': _categoryStatus ? '1' : '2',
       'old_image': oldImage,
       'category_id': categoryId,
       'latitude': currentLocation['latitude'].toString(),
@@ -117,7 +128,6 @@ class _main_page extends State<main_page> {
     http.Response res = await http.post(
         '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addposcategory.php',
         body: categoryData);
-    print(res.body);
     if (res.body != '1') {}
   }
 
@@ -128,6 +138,16 @@ class _main_page extends State<main_page> {
     setState(() {
       _categoryImageName = tmpName;
       _categoryFile = tmp;
+    });
+  }
+
+  Future addProductImage() async {
+    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery);
+    String tmpName =
+        '${productType[_productTypeSelect][0]}_${new DateTime.now().millisecondsSinceEpoch.toString()}';
+    setState(() {
+      _productImageName = tmpName;
+      _productImage = tmp;
     });
   }
 
@@ -144,7 +164,17 @@ class _main_page extends State<main_page> {
     setState(() {
       _productTypeSelect = 0;
       _productType.text = '';
+      _productTypeStatus = false;
+    });
+  }
+
+  void clearProduct(){
+    setState(() {
+      _productImage = null;
+      _productImageName = null;
       _productStatus = false;
+      _productName.text = '';
+      _productPrice.text = '';
     });
   }
 
@@ -224,7 +254,7 @@ class _main_page extends State<main_page> {
                             child: Text(
                                 _categoryImageName == null
                                     ? _languageServices.getText('picture')
-                                    : _categoryImageName + '.jpg',
+                                    : _categoryImageName,
                                 style: _appFontStyle.getNormalText()),
                           ),
                           Container(
@@ -445,7 +475,7 @@ class _main_page extends State<main_page> {
                             child: Text(
                                 _categoryImageName == null
                                     ? _languageServices.getText('picture')
-                                    : _categoryImageName + '.jpg',
+                                    : _categoryImageName,
                                 style: _appFontStyle.getNormalText()),
                           ),
                           Container(
@@ -631,7 +661,6 @@ class _main_page extends State<main_page> {
         'position': _tmpType[i][4]
       });
     }
-    _tmp.add({'name': 'dummy'});
     setState(() {
       _type = _tmp;
       isLoaded = true;
@@ -656,7 +685,7 @@ class _main_page extends State<main_page> {
       'product_type_id': productTypeId,
       'category_id': _type[_categorySelect]['id'],
       'name': _productType.text,
-      'status': _productStatus ? '1' : '0',
+      'status': _productTypeStatus ? '1' : '2',
       'latitude': currentLocation['latitude'].toString(),
       'longitude': currentLocation['longitude'].toString()
     };
@@ -732,10 +761,10 @@ class _main_page extends State<main_page> {
                         child: Switch(
                           activeColor:
                           Color(int.parse(_posService.getPosColor())),
-                          value: _productStatus,
+                          value: _productTypeStatus,
                           onChanged: (bool newValue) {
                             setState(() {
-                              _productStatus = !_productStatus;
+                              _productTypeStatus = !_productTypeStatus;
                             });
                           },
                         ),
@@ -842,7 +871,7 @@ class _main_page extends State<main_page> {
     String product_type_id = productTypeData[0];
     setState(() {
       _productType.text = productTypeData[2];
-      _productStatus = productTypeData[3] == '1' ? true : false;
+      _productTypeStatus = productTypeData[3] == '1' ? true : false;
     });
     await showDialog(context: context, builder: (BuildContext context){
       return AlertDialog(
@@ -911,10 +940,10 @@ class _main_page extends State<main_page> {
                         child: Switch(
                           activeColor:
                           Color(int.parse(_posService.getPosColor())),
-                          value: _productStatus,
+                          value: _productTypeStatus,
                           onChanged: (bool newValue) {
                             setState(() {
-                              _productStatus = !_productStatus;
+                              _productTypeStatus = !_productTypeStatus;
                             });
                           },
                         ),
@@ -1015,13 +1044,6 @@ class _main_page extends State<main_page> {
         ),
       );
     });
-
-    Map<String, String> postTypeData = {
-      'category_id': _type[_categorySelect]['id'],
-      'name': _productType.text,
-      'status': _productStatus ? '1' : '0',
-    };
-    print(postTypeData);
   }
 
   Future loadCategoryType(int index)async{
@@ -1029,13 +1051,600 @@ class _main_page extends State<main_page> {
       isLoaded = false;
       _productTypeSelect = 0;
     });
-    String tmp = _type[index]['id'];
+    String tmp = _type.length == 0 ? null : _type[index]['id'];
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getproducttype.php?category_id=${tmp}');
     List<dynamic> _productType = jsonDecode(res.body);
-    print(_productType);
     setState(() {
       productType = _productType;
       isLoaded = true;
+    });
+  }
+
+  Future loadProduct(int index)async{
+    setState(() {
+      isLoaded = false;
+    });
+    String tmp = productType.length == 0 ? null : productType[index][0];
+    http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getproduct.php?type_id=${tmp}');
+    List<dynamic> _productTmp = jsonDecode(res.body);
+    print(_productTmp);
+    setState(() {
+      productData = _productTmp;
+      isLoaded = true;
+    });
+  }
+
+  Future addProduct()async{
+//    print(_type[_categorySelect]['name']);
+//    print(productType[_productTypeSelect][2]);
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(5))
+            ),
+            child: SingleChildScrollView(
+              child: Container(
+                height: 400,
+                padding: EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.only(right: 15),
+                            child: Icon(IconData(
+                                int.parse(_posService.getPosIcon()),
+                                fontFamily: 'MaterialIcons')),
+                          ),
+                          Expanded(
+                            child: Container(
+                              child: Text(
+                                "${_type[_categorySelect]['name']} / ${productType[_productTypeSelect][2]} / ",
+                                style: _appFontStyle.getSmallButtonText(),
+                                overflow: TextOverflow.clip,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      color: Color(0xffc5c5c5),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                      alignment: Alignment.centerLeft,
+                      height: _posService.getWidth()/8.5,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.3),
+                                blurRadius: 3)
+                          ]),
+                      child: TextField(
+                        controller: _productName,
+                        style: _appFontStyle.getNormalText(),
+                        decoration: InputDecoration.collapsed(
+                          hintText: _languageServices.getText('name'),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                      alignment: Alignment.centerLeft,
+                      height: _posService.getWidth()/8.5,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.3),
+                                blurRadius: 3)
+                          ]),
+                      child: TextField(
+                        controller: _productPrice,
+                        keyboardType: TextInputType.number,
+                        style: _appFontStyle.getNormalText(),
+                        decoration: InputDecoration.collapsed(
+                          hintText: _languageServices.getText('price'),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        addProductImage();
+                      },
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                        padding: EdgeInsets.only(left: 15, right: 15),
+                        height: _posService.getWidth()/8.5,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(25)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Color.fromRGBO(0, 0, 0, 0.3),
+                                  blurRadius: 2)
+                            ]),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Container(
+                              child: Text(
+                                  _productImageName == null
+                                      ? _languageServices.getText('picture')
+                                      : _productImageName,
+                                  style: _appFontStyle.getNormalText()),
+                            ),
+                            Container(
+                              child: Icon(
+                                Icons.add_photo_alternate,
+                                color: Color(0xff565656),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.only(right: 15),
+                            child: Text(
+                              "Online",
+                              style: _appFontStyle.getNormalText(),
+                            ),
+                          ),
+                          Container(
+                            child: Transform.scale(
+                              scale: 1.5,
+                              child: Switch(
+                                activeColor:
+                                Color(int.parse(_posService.getPosColor())),
+                                value: _productStatus,
+                                onChanged: (bool newValue) {
+                                  setState(() {
+                                    _productStatus = !_productStatus;
+                                  });
+                                },
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(),
+                    ),
+                    Container(
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            flex: 1,
+                            child: GestureDetector(
+                              onTap: () {
+                                clearProduct();
+                                Navigator.of(context).pop();
+                              },
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.only(
+                                    left: 15, right: 15, top: 5, bottom: 5),
+                                decoration: BoxDecoration(
+                                  color: Color(0xffD66B6B),
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(20)),
+                                ),
+                                child: Column(
+                                  children: <Widget>[
+                                    Container(
+                                      child: Icon(
+                                        Icons.clear,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Container(
+                                      child: Text(
+                                        _languageServices.getText('back'),
+                                        style: _appFontStyle.getLightText(
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          Expanded(
+                            flex: 1,
+                            child: GestureDetector(
+                              onTap: () {
+                              setState(() {
+                                isLoaded = false;
+                              });
+                                uploadProduct().then((a){
+                                  loadProduct(_productTypeSelect).then((b){
+                                    clearProduct();
+                                    Navigator.of(context).pop();
+                                  });
+                                });
+                              },
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.only(
+                                    left: 15, right: 15, top: 5, bottom: 5),
+                                decoration: BoxDecoration(
+                                  color: Color(0xff0076A2),
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(20)),
+                                ),
+                                child: Column(
+                                  children: <Widget>[
+                                    Container(
+                                      child: Icon(
+                                        Icons.check_box,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Container(
+                                      child: Text(
+                                        _languageServices.getText('confirm'),
+                                        style: _appFontStyle.getLightText(
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  Future uploadProduct({isUpdate : 'false',oldImage: '', productId: ''})async{
+    if(_productName.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
+      return;
+    }
+    if(_productPrice.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('price')}",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
+      return;
+    }
+
+    if(_productImageName == null){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('picture')}",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+          ],
+        );
+      });
+      return;
+    }
+
+    String imageName = _productImage == null ? '' : base64Encode(_productImage.readAsBytesSync());
+    Map<String, double> currentLocation = _authentication.getCurrentPosition();
+
+    Map<String, String> _productData = {
+      'is_update': isUpdate,
+      'product_type_id': productType[_productTypeSelect][0],
+      'name': _productName.text,
+      'price': _productPrice.text,
+      'image': imageName,
+      'image_name': _productImageName,
+      'status': _productStatus ? '1':'2',
+      'note': '',
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString(),
+      'product_id': productId,
+      'old_image': oldImage
+    };
+    print(_productData);
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproduct.php', body: _productData);
+    print(res.body);
+    if(res.body == '1'){
+
+    }
+  }
+
+  Future editProduct(List<dynamic> _productData)async{
+    print(_productData);
+    String oldImage = _productData[5];
+    setState(() {
+      _productName.text = _productData[2];
+      _productPrice.text = _productData[3];
+      _productImageName = _productData[5];
+      _productStatus = _productData[6] == '1' ? true : false;
+    });
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(5))
+            ),
+            child: SingleChildScrollView(
+              child: Container(
+                height: 400,
+                padding: EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.only(right: 15),
+                            child: Icon(IconData(
+                                int.parse(_posService.getPosIcon()),
+                                fontFamily: 'MaterialIcons')),
+                          ),
+                          Expanded(
+                            child: Container(
+                              child: Text(
+                                "${_type[_categorySelect]['name']} / ${productType[_productTypeSelect][2]} / ",
+                                style: _appFontStyle.getSmallButtonText(),
+                                overflow: TextOverflow.clip,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      color: Color(0xffc5c5c5),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                      alignment: Alignment.centerLeft,
+                      height: _posService.getWidth()/8.5,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.3),
+                                blurRadius: 3)
+                          ]),
+                      child: TextField(
+                        controller: _productName,
+                        style: _appFontStyle.getNormalText(),
+                        decoration: InputDecoration.collapsed(
+                          hintText: _languageServices.getText('name'),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                      padding: EdgeInsets.only(left: 15, right: 15),
+                      alignment: Alignment.centerLeft,
+                      height: _posService.getWidth()/8.5,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.3),
+                                blurRadius: 3)
+                          ]),
+                      child: TextField(
+                        controller: _productPrice,
+                        keyboardType: TextInputType.number,
+                        style: _appFontStyle.getNormalText(),
+                        decoration: InputDecoration.collapsed(
+                          hintText: _languageServices.getText('price'),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        addProductImage();
+                      },
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                        padding: EdgeInsets.only(left: 15, right: 15),
+                        height: _posService.getWidth()/8.5,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(25)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Color.fromRGBO(0, 0, 0, 0.3),
+                                  blurRadius: 2)
+                            ]),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Container(
+                              child: Text(
+                                  _productImageName == null
+                                      ? _languageServices.getText('picture')
+                                      : _productImageName,
+                                  style: _appFontStyle.getNormalText()),
+                            ),
+                            Container(
+                              child: Icon(
+                                Icons.add_photo_alternate,
+                                color: Color(0xff565656),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.only(right: 15),
+                            child: Text(
+                              "Online",
+                              style: _appFontStyle.getNormalText(),
+                            ),
+                          ),
+                          Container(
+                            child: Transform.scale(
+                              scale: 1.5,
+                              child: Switch(
+                                activeColor:
+                                Color(int.parse(_posService.getPosColor())),
+                                value: _productStatus,
+                                onChanged: (bool newValue) {
+                                  setState(() {
+                                    _productStatus = !_productStatus;
+                                  });
+                                },
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(),
+                    ),
+                    Container(
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(
+                            flex: 1,
+                            child: GestureDetector(
+                              onTap: () {
+                                clearProduct();
+                                Navigator.of(context).pop();
+                              },
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.only(
+                                    left: 15, right: 15, top: 5, bottom: 5),
+                                decoration: BoxDecoration(
+                                  color: Color(0xffD66B6B),
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(20)),
+                                ),
+                                child: Column(
+                                  children: <Widget>[
+                                    Container(
+                                      child: Icon(
+                                        Icons.clear,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Container(
+                                      child: Text(
+                                        _languageServices.getText('back'),
+                                        style: _appFontStyle.getLightText(
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          Expanded(
+                            flex: 1,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  isLoaded = false;
+                                });
+                                uploadProduct(isUpdate: 'true',oldImage: oldImage,productId: _productData[0]).then((a){
+                                  loadProduct(_productTypeSelect).then((b){
+                                    clearProduct();
+                                    Navigator.of(context).pop();
+                                  });
+                                });
+                              },
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.only(
+                                    left: 15, right: 15, top: 5, bottom: 5),
+                                decoration: BoxDecoration(
+                                  color: Color(0xff0076A2),
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(20)),
+                                ),
+                                child: Column(
+                                  children: <Widget>[
+                                    Container(
+                                      child: Icon(
+                                        Icons.check_box,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Container(
+                                      child: Text(
+                                        _languageServices.getText('confirm'),
+                                        style: _appFontStyle.getLightText(
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+
+  }
+
+  Future deleteProduct(id)async{}
+
+  void categoryReoder(int oldIndex, int newIndex) {
+    setState(() {
+      _type.insert(newIndex, _type.removeAt(oldIndex));
     });
   }
 
@@ -1045,17 +1654,12 @@ class _main_page extends State<main_page> {
     });
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
+  void productReorder(int oldIndex, int newIndex) {
     setState(() {
-      _list.insert(newIndex, _list.removeAt(oldIndex));
+      productData.insert(newIndex, productData.removeAt(oldIndex));
     });
   }
 
-  void categoryReoder(int oldIndex, int newIndex) {
-    setState(() {
-      _type.insert(newIndex, _type.removeAt(oldIndex));
-    });
-  }
 
   @override
   void didChangeDependencies() {
@@ -1066,8 +1670,17 @@ class _main_page extends State<main_page> {
     _posService = Provider.of<POSService>(context);
     if (!isLoaded) {
       onEntry().then((e) {
-        loadCategoryData().then((e){
-          loadCategoryType(0);
+        loadCategoryData().then((a){
+          print('ty');
+          print(_type);
+          loadCategoryType(0).then((b){
+            print('pt');
+            print(productType);
+            loadProduct(0).then((c){
+              print('p');
+              print(productData);
+            });
+          });
         });
       });
     }
@@ -1080,6 +1693,8 @@ class _main_page extends State<main_page> {
 
     // TODO: implement build
     return Scaffold(
+        resizeToAvoidBottomPadding: false,
+        resizeToAvoidBottomInset: false,
         body: isLoaded
             ? Container(
                 child: Column(
@@ -1329,7 +1944,58 @@ class _main_page extends State<main_page> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                      child: isEdit
+                                      child: _type.length == 0 ? Container(
+                                        padding: EdgeInsets.only(
+                                            left: 15, right: 15),
+                                        height: 85,
+                                        alignment: Alignment.centerLeft,
+                                        child: GestureDetector(
+                                          onTap: (){
+                                            setState(() {
+                                              isEdit = true;
+                                            });
+                                            addCategory();
+                                          },
+                                          child: Container(
+                                            alignment: Alignment.centerLeft,
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: <
+                                                  Widget>[
+                                                Container(
+                                                  margin: EdgeInsets.only(
+                                                      bottom:
+                                                      5),
+                                                  height: 40,
+                                                  width: 40,
+                                                  decoration:
+                                                  BoxDecoration(
+                                                    shape: BoxShape
+                                                        .circle,
+                                                    color: Color(
+                                                        0xffb1b1b1),
+                                                  ),
+                                                  child: Icon(
+                                                    Icons
+                                                        .add_to_photos,
+                                                    color: Color(
+                                                        0xff656565),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  child: Text(
+                                                    _languageServices
+                                                        .getText(
+                                                        'add'),
+                                                    style: _appFontStyle
+                                                        .getNormalText(),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      ): isEdit
                                           ? Container(
                                               padding: EdgeInsets.only(
                                                   left: 15, right: 15),
@@ -1345,10 +2011,10 @@ class _main_page extends State<main_page> {
                                                           Axis.horizontal,
                                                       onReorder: categoryReoder,
                                                       children: List.generate(
-                                                          _type.length,
+                                                          _type.length+1,
                                                           (int index) {
                                                         if (index ==
-                                                            _type.length - 1) {
+                                                            _type.length) {
                                                           return GestureDetector(
                                                             onTap: () {
                                                               addCategory();
@@ -1507,14 +2173,21 @@ class _main_page extends State<main_page> {
                                             child: ListView.builder(
                                               padding: EdgeInsets.zero,
                                               scrollDirection: Axis.horizontal,
-                                              itemCount: _type.length -1 ,
+                                              itemCount: _type.length ,
                                               itemBuilder: (BuildContext context, int index){
                                                 if(_type[index]['status'] == '1'){
                                                   return GestureDetector(
                                                     onTap: (){
                                                       setState(() {
                                                         _categorySelect = index;
-                                                        loadCategoryType(_categorySelect);
+                                                        loadCategoryType(_categorySelect).then((e){
+                                                          loadProduct(_productTypeSelect);
+                                                        });
+                                                      });
+                                                    },
+                                                    onLongPress: (){
+                                                      setState(() {
+                                                        isEdit = true;
                                                       });
                                                     },
                                                     child: Container(
@@ -1564,7 +2237,37 @@ class _main_page extends State<main_page> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                    child: isEdit ? Container(
+                                    child: productType.length == 0 ? Container(
+                                      child: GestureDetector(
+                                        onTap: (){
+                                          if(_type.length == 0){
+                                            return;
+                                          }
+                                          setState(() {
+                                            isEdit = true;
+                                          });
+                                          addProductType();
+                                        },
+                                        child: Container(
+                                          alignment: Alignment.center,
+                                          margin: EdgeInsets.only(right: 25),
+                                          child: Row(
+                                            children: <Widget>[
+                                              Container(
+                                                margin: EdgeInsets.only(right: 5),
+                                                child: Icon(Icons.add_to_photos,color: Color(0xff757575),size: 18,),
+                                              ),
+                                              Container(
+                                                child: Text(
+                                                  _languageServices.getText('add'),
+                                                  style: _appFontStyle.getSmallButtonText(color: Colors.grey),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ): isEdit ? Container(
                                       child: SingleChildScrollView(
                                         child: ReorderableWrap(
                                           onReorder: categoryTypeReorder,
@@ -1680,6 +2383,7 @@ class _main_page extends State<main_page> {
                                             onTap: (){
                                               setState(() {
                                                 _productTypeSelect = index;
+                                                loadProduct(_productTypeSelect);
                                               });
                                             },
                                             child: Container(
@@ -1700,8 +2404,66 @@ class _main_page extends State<main_page> {
                               ),
                             ),
                             Expanded(
-                                child: isEdit
+                                child: productData.length == 0 ? Container(
+                                  padding: EdgeInsets.only(left: 15),
+                                  alignment: Alignment.topLeft,
+                                      child: SingleChildScrollView(
+                                        child: ReorderableWrap(
+                                          padding: EdgeInsets.only(top: 10),
+                                          spacing: 20,
+                                          runSpacing: 20,
+                                          onReorder: (a,b){},
+                                          children: <Widget>[
+                                            GestureDetector(
+                                              onTap: (){
+                                                if(productType.length == 0){
+//                                                  showDialog(
+//                                                    context: context,
+//                                                    builder: (BuildContext context){
+//                                                      return AlertDialog(
+//                                                        content: ,
+//                                                      );
+//                                                    }
+//                                                  );
+                                                  return;
+                                                }
+                                                setState(() {
+                                                  isEdit = true;
+                                                });
+                                                addProduct();
+                                              },
+                                              child: Container(
+                                                margin: EdgeInsets.only(
+                                                    bottom: 15),
+                                                height: _posService
+                                                    .getWidth() /
+                                                    _posService
+                                                        .getRowNumber() -
+                                                    25,
+                                                width: _posService
+                                                    .getWidth() /
+                                                    _posService
+                                                        .getRowNumber() -
+                                                    25,
+                                                decoration: BoxDecoration(
+                                                    color: Color(0xffe1e1e1),
+                                                    borderRadius:
+                                                    BorderRadius.all(
+                                                        Radius.circular(
+                                                            10))),
+                                                child: Icon(
+                                                  Icons.add_to_photos,
+                                                  color: Color(0xff757575),
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ) : isEdit
                                     ? Container(
+                                        padding: EdgeInsets.only(left: 15),
+                                        alignment: Alignment.topLeft,
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.vertical,
                                           child: ReorderableWrap(
@@ -1709,113 +2471,124 @@ class _main_page extends State<main_page> {
                                             spacing: 20,
                                             runSpacing: 20,
                                             children: List.generate(
-                                                _list.length, (index) {
-                                              if (index == _list.length - 1) {
-                                                return Container(
-                                                  margin: EdgeInsets.only(
-                                                      bottom: 15),
-                                                  height: _posService
-                                                              .getWidth() /
-                                                          _posService
-                                                              .getRowNumber() -
-                                                      25,
-                                                  width: _posService
-                                                              .getWidth() /
-                                                          _posService
-                                                              .getRowNumber() -
-                                                      25,
-                                                  decoration: BoxDecoration(
-                                                      color: Color(0xffe1e1e1),
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                              Radius.circular(
-                                                                  10))),
-                                                  child: Icon(
-                                                    Icons.add_to_photos,
-                                                    color: Color(0xff757575),
+                                                productData == null ? 0 :productData.length+1, (index) {
+                                              if (index == productData.length) {
+                                                return GestureDetector(
+                                                  onTap: (){
+                                                    addProduct();
+                                                  },
+                                                  child: Container(
+                                                    margin: EdgeInsets.only(
+                                                        bottom: 15),
+                                                    height: _posService
+                                                                .getWidth() /
+                                                            _posService
+                                                                .getRowNumber() -
+                                                        25,
+                                                    width: _posService
+                                                                .getWidth() /
+                                                            _posService
+                                                                .getRowNumber() -
+                                                        25,
+                                                    decoration: BoxDecoration(
+                                                        color: Color(0xffe1e1e1),
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(
+                                                                    10))),
+                                                    child: Icon(
+                                                      Icons.add_to_photos,
+                                                      color: Color(0xff757575),
+                                                    ),
                                                   ),
                                                 );
                                               }
-                                              return Container(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: <Widget>[
-                                                    Container(
-                                                      child: Stack(
-                                                        children: <Widget>[
-                                                          Container(
-                                                            height: _posService
-                                                                        .getWidth() /
-                                                                    _posService
-                                                                        .getRowNumber() -
-                                                                25,
-                                                            width: _posService
-                                                                        .getWidth() /
-                                                                    _posService
-                                                                        .getRowNumber() -
-                                                                25,
-                                                            decoration: BoxDecoration(
-                                                                color: Color(int
-                                                                    .parse(_posService
-                                                                        .getPosColor())),
-                                                                borderRadius: BorderRadius
-                                                                    .all(Radius
-                                                                        .circular(
-                                                                            10))),
-                                                          ),
-                                                          Positioned(
-                                                            top: 0,
-                                                            right: 0,
-                                                            child:
-                                                                GestureDetector(
-                                                              onTap: () {
-                                                                setState(() {
-                                                                  _list.removeAt(
-                                                                      index);
-                                                                });
-                                                              },
-                                                              child: Container(
-                                                                alignment:
-                                                                    Alignment
-                                                                        .center,
-                                                                decoration: BoxDecoration(
+                                              return GestureDetector(
+                                                onTap: (){
+                                                  editProduct(productData[index]);
+                                                },
+                                                child: Container(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: <Widget>[
+                                                      Container(
+                                                        child: Stack(
+                                                          children: <Widget>[
+                                                            Container(
+                                                              height: _posService
+                                                                          .getWidth() /
+                                                                      _posService
+                                                                          .getRowNumber() -
+                                                                  25,
+                                                              width: _posService
+                                                                          .getWidth() /
+                                                                      _posService
+                                                                          .getRowNumber() -
+                                                                  25,
+                                                              decoration: BoxDecoration(
+                                                                  color: Color(int
+                                                                      .parse(_posService
+                                                                          .getPosColor())),
+                                                                  borderRadius: BorderRadius
+                                                                      .all(Radius
+                                                                          .circular(
+                                                                              10)),
+                                                                  image: DecorationImage(image: productData[index][5] == '' ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${productData[index][5]}'),fit: BoxFit.cover)),
+                                                            ),
+                                                            Positioned(
+                                                              top: 0,
+                                                              right: 0,
+                                                              child:
+                                                                  GestureDetector(
+                                                                onTap: () {
+                                                                  setState(() {
+                                                                    productData.removeAt(
+                                                                        index);
+                                                                  });
+                                                                },
+                                                                child: Container(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .center,
+                                                                  decoration: BoxDecoration(
+                                                                      color: Colors
+                                                                          .redAccent,
+                                                                      shape: BoxShape
+                                                                          .circle),
+                                                                  child: Icon(
+                                                                    Icons.remove,
                                                                     color: Colors
-                                                                        .redAccent,
-                                                                    shape: BoxShape
-                                                                        .circle),
-                                                                child: Icon(
-                                                                  Icons.remove,
-                                                                  color: Colors
-                                                                      .white,
+                                                                        .white,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Container(
-                                                      child: Text(
-                                                        _list[index],
-                                                        style: _appFontStyle
-                                                            .getSmallButtonText(),
+                                                      Container(
+                                                        child: Text(
+                                                          productData[index][2],
+                                                          style: _appFontStyle
+                                                              .getSmallButtonText(),
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Container(
-                                                      child: Text(
-                                                        '100\$',
-                                                        style: _appFontStyle
-                                                            .getNormalText(
-                                                                color: Color(
-                                                                    0xff656565)),
+                                                      Container(
+                                                        child: Text(
+                                                          '${productData[index][3]}฿',
+                                                          style: _appFontStyle
+                                                              .getNormalText(
+                                                                  color: Color(
+                                                                      0xff656565)),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               );
                                             }),
-                                            onReorder: _onReorder,
+                                            onReorder: productReorder,
                                           ),
                                         ),
                                       )
@@ -1835,7 +2608,7 @@ class _main_page extends State<main_page> {
                                               runSpacing: 10,
                                               spacing: _posService.getRowNumber() == 2 ? 20: 22,
                                               children: List.generate(
-                                                  _list.length - 1, (index) {
+                                                  productData.length, (index) {
                                                 return GestureDetector(
                                                   onLongPress: (){
                                                     setState(() {
@@ -1843,7 +2616,6 @@ class _main_page extends State<main_page> {
                                                     });
                                                   },
                                                   child: Container(
-//                                                    margin: EdgeInsets.only(right: 15),
                                                     child: Column(
                                                       crossAxisAlignment:
                                                           CrossAxisAlignment
@@ -1861,14 +2633,10 @@ class _main_page extends State<main_page> {
                                                                       .getRowNumber() -
                                                               25,
                                                           decoration: BoxDecoration(
-                                                              color: Color(int
-                                                                  .parse(_posService
-                                                                      .getPosColor())),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .all(Radius
-                                                                          .circular(
-                                                                              10))),
+                                                              color: Color(int.parse(_posService.getPosColor())),
+                                                              borderRadius: BorderRadius.all(Radius.circular(10)),
+                                                              image: DecorationImage(image: productData[index][5] == '' ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${productData[index][5]}'),fit: BoxFit.cover)
+                                                          ),
                                                         ),
                                                         Container(
                                                           width: _posService
@@ -1876,13 +2644,13 @@ class _main_page extends State<main_page> {
                                                               _posService
                                                                   .getRowNumber() -
                                                               25,
-                                                          child: Text(productType[_productTypeSelect].toString(),
+                                                          child: Text(productData[index][2],
                                                             style: _appFontStyle.getSmallButtonText(),
                                                           ),
                                                         ),
                                                         Container(
                                                           child: Text(
-                                                            '100\$',
+                                                            '${productData[index][3]}฿',
                                                             style: _appFontStyle
                                                                 .getNormalText(
                                                                     color: Color(
