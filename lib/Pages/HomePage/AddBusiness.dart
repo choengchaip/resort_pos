@@ -240,34 +240,6 @@ class _addbusiness_page extends State<addbusiness_page>{
                 children: <Widget>[
                   GestureDetector(
                     onTap: (){
-                      Navigator.of(context).pop();
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: 100,
-                      margin: EdgeInsets.only(right: 25),
-                      padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
-                      decoration: BoxDecoration(
-                        color: Color(0xff707070),
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            child: Icon(Icons.arrow_back,color: Colors.white,),
-                          ),
-                          Container(
-                            child: Text(
-                              _languageServices.getText('back'),
-                              style: _appFontStyle.getLightText(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: (){
                       Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
                         return addicon_page(_posData);
                       }));

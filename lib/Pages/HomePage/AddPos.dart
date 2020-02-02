@@ -113,34 +113,6 @@ class _addpos_page extends State<addpos_page>{
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   GestureDetector(
-                    onTap: (){
-                      Navigator.of(context).pop();
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: 100,
-                      margin: EdgeInsets.only(right: 25),
-                      padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
-                      decoration: BoxDecoration(
-                        color: Color(0xff707070),
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            child: Icon(Icons.arrow_back,color: Colors.white,),
-                          ),
-                          Container(
-                            child: Text(
-                              _languageServices.getText('back'),
-                              style: _appFontStyle.getLightText(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
                     onTap: ()async{
                       if(_posName.text.isEmpty){
                         await showDialog(context: context,builder: (BuildContext context){
