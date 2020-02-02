@@ -130,23 +130,10 @@ class _main_page extends State<main_page> {
       return;
     }
 
-    if(_categoryImageName == null){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('picture')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text(_languageServices.getText('confirm')),)
-          ],
-        );
-      });
-      setState(() {
-        isLoaded = true;
-      });
-      return;
-    }
     setState(() {
       isLoaded = true;
     });
+
     Navigator.of(context).pop();
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
     Map<String, String> categoryData = {
@@ -154,10 +141,10 @@ class _main_page extends State<main_page> {
       'is_update': isUpdate,
       'pos_id': _posService.getPosId(),
       'name': _categoryName.text,
-      'image_name': _categoryImageName,
-      'image': _categoryFile == null ? '' : base64Encode(_categoryFile.readAsBytesSync()),
+      'image_name': _categoryImageName == null ? 'null' : _categoryImageName,
+      'image': _categoryFile == null ? 'null' : base64Encode(_categoryFile.readAsBytesSync()),
       'status': _categoryStatus ? '1' : '2',
-      'old_image': oldImage,
+      'old_image': oldImage == null ? 'null' : oldImage,
       'category_id': categoryId,
       'latitude': currentLocation['latitude'].toString(),
       'longitude': currentLocation['longitude'].toString()
@@ -567,9 +554,36 @@ class _main_page extends State<main_page> {
                         Expanded(
                           flex: 1,
                           child: GestureDetector(
-                            onTap: () {
-                              clearCategory();
-                              Navigator.of(context).pop();
+                            onTap:
+                                () {
+                              showDialog(
+                                  context:
+                                  context,
+                                  builder:
+                                      (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                        "ยืนยันการลบหรือไม่?",
+                                        style: _appFontStyle.getSmallButtonText(),
+                                      ),
+                                      actions: <Widget>[
+                                        FlatButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text("ยกเลิก"),
+                                        ),
+                                        FlatButton(
+                                          onPressed: () {
+                                            deleteCategory(categoryData['id']).then((a){
+                                              Navigator.of(context).pop();
+                                            });
+                                          },
+                                          child: Text("ยืนยัน"),
+                                        )
+                                      ],
+                                    );
+                                  });
                             },
                             child: Container(
                               alignment: Alignment.center,
@@ -590,7 +604,7 @@ class _main_page extends State<main_page> {
                                   ),
                                   Container(
                                     child: Text(
-                                      _languageServices.getText('back'),
+                                      _languageServices.getText('delete'),
                                       style: _appFontStyle.getLightText(
                                           color: Colors.white),
                                     ),
@@ -909,6 +923,7 @@ class _main_page extends State<main_page> {
   }
 
   Future editProductType(List<dynamic> productTypeData)async{
+    print(productTypeData);
     String product_type_id = productTypeData[0];
     setState(() {
       _productType.text = productTypeData[2];
@@ -1003,8 +1018,34 @@ class _main_page extends State<main_page> {
                       flex: 1,
                       child: GestureDetector(
                         onTap: () {
-                          clearProductType();
-                          Navigator.of(context).pop();
+                          showDialog(
+                              context:
+                              context,
+                              builder:
+                                  (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text(
+                                    "ยืนยันการลบหรือไม่?",
+                                    style: _appFontStyle.getSmallButtonText(),
+                                  ),
+                                  actions: <Widget>[
+                                    FlatButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(_languageServices.getText('back')),
+                                    ),
+                                    FlatButton(
+                                      onPressed: () {
+                                        deleteProductType(productTypeData[0]).then((a){
+                                          Navigator.of(context).pop();
+                                        });
+                                      },
+                                      child: Text(_languageServices.getText('confirm')),
+                                    )
+                                  ],
+                                );
+                              });
                         },
                         child: Container(
                           alignment: Alignment.center,
@@ -1025,7 +1066,7 @@ class _main_page extends State<main_page> {
                               ),
                               Container(
                                 child: Text(
-                                  _languageServices.getText('back'),
+                                  _languageServices.getText('delete'),
                                   style: _appFontStyle.getLightText(
                                       color: Colors.white),
                                 ),
@@ -1404,24 +1445,9 @@ class _main_page extends State<main_page> {
       return;
     }
 
-    if(_productImageName == null){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('picture')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
-      setState(() {
-        isLoaded = true;
-      });
-      return;
-    }
-
     Navigator.of(context).pop();
 
-    String imageName = _productImage == null ? '' : base64Encode(_productImage.readAsBytesSync());
+    String imageName = _productImage == null ? null : base64Encode(_productImage.readAsBytesSync());
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
 
     Map<String, String> _productData = {
@@ -1430,16 +1456,17 @@ class _main_page extends State<main_page> {
       'product_type_id': productType[_productTypeSelect][0],
       'name': _productName.text,
       'price': _productPrice.text,
-      'image': imageName,
-      'image_name': _productImageName,
+      'image': imageName == null ? 'null' : imageName,
+      'image_name': _productImageName == null ? 'null' : _productImageName,
       'status': _productStatus ? '1':'2',
       'note': '',
       'latitude': currentLocation['latitude'].toString(),
       'longitude': currentLocation['longitude'].toString(),
       'product_id': productId,
-      'old_image': oldImage
+      'old_image': oldImage == null ? 'null' : oldImage
     };
     http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproduct.php', body: _productData);
+    print(res.body);
     if(res.body == '1'){
 
     }
@@ -1617,8 +1644,34 @@ class _main_page extends State<main_page> {
                             flex: 1,
                             child: GestureDetector(
                               onTap: () {
-                                clearProduct();
-                                Navigator.of(context).pop();
+                                showDialog(
+                                    context:
+                                    context,
+                                    builder:
+                                        (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(
+                                          "ยืนยันการลบหรือไม่?",
+                                          style: _appFontStyle.getSmallButtonText(),
+                                        ),
+                                        actions: <Widget>[
+                                          FlatButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text("ยกเลิก"),
+                                          ),
+                                          FlatButton(
+                                            onPressed: () {
+                                              deleteProduct(_productData[0]).then((a){
+                                                Navigator.of(context).pop();
+                                              });
+                                            },
+                                            child: Text("ยืนยัน"),
+                                          )
+                                        ],
+                                      );
+                                    });
                               },
                               child: Container(
                                 alignment: Alignment.center,
@@ -1639,7 +1692,7 @@ class _main_page extends State<main_page> {
                                     ),
                                     Container(
                                       child: Text(
-                                        _languageServices.getText('back'),
+                                        _languageServices.getText('delete'),
                                         style: _appFontStyle.getLightText(
                                             color: Colors.white),
                                       ),
@@ -1704,7 +1757,22 @@ class _main_page extends State<main_page> {
 
   }
 
-  Future deleteProduct(id)async{}
+  Future deleteProduct(id)async{
+    setState(() {
+      isLoaded = false;
+      Navigator.of(context).pop();
+    });
+    http.Response res = await http.post(
+        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteproduct.php',
+        body: {'product_id': id});
+    print(res.body);
+    if (res.body == '1') {
+      await loadProduct(_productTypeSelect);
+    }
+    setState(() {
+      isLoaded = true;
+    });
+  }
 
   void categoryReoder(int oldIndex, int newIndex) {
     if(oldIndex == _type.length -1){
@@ -1980,10 +2048,15 @@ class _main_page extends State<main_page> {
                                         ),
                                       ),
                                       GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+                                        onTap: () async{
+                                          var res = await Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
                                             return profile_page();
                                           }));
+                                          if(res != null){
+                                            setState(() {
+                                              isEdit = res;
+                                            });
+                                          }
                                         },
                                         child: _authentication
                                                     .getUserAvatar() !=
@@ -2154,8 +2227,7 @@ class _main_page extends State<main_page> {
                                                           children: <Widget>[
                                                             Container(
                                                               child: Stack(
-                                                                children: <
-                                                                    Widget>[
+                                                                children: <Widget>[
                                                                   Opacity(
                                                                     opacity:
                                                                         _type[index]['status'] !=
@@ -2181,58 +2253,6 @@ class _main_page extends State<main_page> {
                                                                                 BoxShape.circle,
                                                                             color: Color(0xffa1a1a1),
                                                                             image: DecorationImage(image: _type[index]['image'] == null ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosCategory/${_type[index]['image']}'), fit: BoxFit.cover)),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                  Positioned(
-                                                                    top: 0,
-                                                                    right: 0,
-                                                                    child:
-                                                                        GestureDetector(
-                                                                      onTap:
-                                                                          () {
-                                                                        showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            builder:
-                                                                                (BuildContext context) {
-                                                                              return AlertDialog(
-                                                                                title: Text(
-                                                                                  "ยืนยันการลบหรือไม่?",
-                                                                                  style: _appFontStyle.getSmallButtonText(),
-                                                                                ),
-                                                                                actions: <Widget>[
-                                                                                  FlatButton(
-                                                                                    onPressed: () {
-                                                                                      Navigator.of(context).pop();
-                                                                                    },
-                                                                                    child: Text("ยกเลิก"),
-                                                                                  ),
-                                                                                  FlatButton(
-                                                                                    onPressed: () {
-                                                                                      deleteCategory(_type[index]['id']);
-                                                                                    },
-                                                                                    child: Text("ยืนยัน"),
-                                                                                  )
-                                                                                ],
-                                                                              );
-                                                                            });
-                                                                      },
-                                                                      child:
-                                                                          Container(
-                                                                        decoration: BoxDecoration(
-                                                                            color:
-                                                                                Colors.redAccent,
-                                                                            shape: BoxShape.circle),
-                                                                        child:
-                                                                            Icon(
-                                                                          Icons
-                                                                              .remove,
-                                                                          color:
-                                                                              Colors.white,
-                                                                          size:
-                                                                              18,
-                                                                        ),
                                                                       ),
                                                                     ),
                                                                   ),
@@ -2337,37 +2357,7 @@ class _main_page extends State<main_page> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                    child: productType == null ? Container() : productType.length == 1 ? Container(
-                                      child: GestureDetector(
-                                        onTap: (){
-                                          if(_type.length == 1){
-                                            return;
-                                          }
-                                          setState(() {
-                                            isEdit = true;
-                                          });
-                                          addProductType();
-                                        },
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          margin: EdgeInsets.only(right: 25),
-                                          child: Row(
-                                            children: <Widget>[
-                                              Container(
-                                                margin: EdgeInsets.only(right: 5),
-                                                child: Icon(Icons.add_to_photos,color: Color(0xff757575),size: 18,),
-                                              ),
-                                              Container(
-                                                child: Text(
-                                                  _languageServices.getText('add'),
-                                                  style: _appFontStyle.getSmallButtonText(color: Colors.grey),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ): isEdit ? Container(
+                                    child: isEdit ? Container(
                                       child: SingleChildScrollView(
                                         child: ReorderableWrap(
                                           onReorder: categoryTypeReorder,
@@ -2414,59 +2404,7 @@ class _main_page extends State<main_page> {
                                                       margin: EdgeInsets.only(right: 25),
                                                       child: Text(
                                                         productType[index][2],
-                                                        style: _appFontStyle.getSmallButtonText(
-                                                            color: _productTypeSelect == index ? Color(int.parse(_posService.getPosColor())):Colors.grey),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    top: 0,
-                                                    right: 11,
-                                                    child:
-                                                    GestureDetector(
-                                                      onTap: () {
-                                                        showDialog(
-                                                            context:
-                                                            context,
-                                                            builder:
-                                                                (BuildContext context) {
-                                                              return AlertDialog(
-                                                                title: Text(
-                                                                  "ยืนยันการลบหรือไม่?",
-                                                                  style: _appFontStyle.getSmallButtonText(),
-                                                                ),
-                                                                actions: <Widget>[
-                                                                  FlatButton(
-                                                                    onPressed: () {
-                                                                      Navigator.of(context).pop();
-                                                                    },
-                                                                    child: Text("ยกเลิก"),
-                                                                  ),
-                                                                  FlatButton(
-                                                                    onPressed: () {
-                                                                      deleteProductType(productType[index][0]);
-                                                                    },
-                                                                    child: Text("ยืนยัน"),
-                                                                  )
-                                                                ],
-                                                              );
-                                                            });
-                                                      },
-                                                      child: Container(
-                                                        alignment:
-                                                        Alignment
-                                                            .center,
-                                                        decoration: BoxDecoration(
-                                                            color: Colors
-                                                                .redAccent,
-                                                            shape: BoxShape
-                                                                .circle),
-                                                        child: Icon(
-                                                          Icons.remove,
-                                                          size: 15,
-                                                          color: Colors
-                                                              .white,
-                                                        ),
+                                                        style: _appFontStyle.getSmallButtonText(color: _productTypeSelect == index ? Color(int.parse(_posService.getPosColor())): productType[index][3] == '1' ? Colors.grey : Color(0xffc8c8c8)),
                                                       ),
                                                     ),
                                                   ),
@@ -2516,63 +2454,7 @@ class _main_page extends State<main_page> {
                               ),
                             ),
                             Expanded(
-                                child: productData == null ? Container() : productData.length == 1 ? Container(
-                                  padding: EdgeInsets.only(left: 15),
-                                  alignment: Alignment.topLeft,
-                                      child: SingleChildScrollView(
-                                        child: ReorderableWrap(
-                                          padding: EdgeInsets.only(top: 10),
-                                          spacing: 20,
-                                          runSpacing: 20,
-                                          onReorder: (a,b){},
-                                          children: <Widget>[
-                                            GestureDetector(
-                                              onTap: (){
-                                                if(productType.length == 1){
-//                                                  showDialog(
-//                                                    context: context,
-//                                                    builder: (BuildContext context){
-//                                                      return AlertDialog(
-//                                                        content: ,
-//                                                      );
-//                                                    }
-//                                                  );
-                                                  return;
-                                                }
-                                                setState(() {
-                                                  isEdit = true;
-                                                });
-                                                addProduct();
-                                              },
-                                              child: Container(
-                                                margin: EdgeInsets.only(
-                                                    bottom: 15),
-                                                height: _posService
-                                                    .getWidth() /
-                                                    _posService
-                                                        .getRowNumber() -
-                                                    25,
-                                                width: _posService
-                                                    .getWidth() /
-                                                    _posService
-                                                        .getRowNumber() -
-                                                    25,
-                                                decoration: BoxDecoration(
-                                                    color: Color(0xffe1e1e1),
-                                                    borderRadius:
-                                                    BorderRadius.all(
-                                                        Radius.circular(
-                                                            10))),
-                                                child: Icon(
-                                                  Icons.add_to_photos,
-                                                  color: Color(0xff757575),
-                                                ),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ) : isEdit
+                                child: isEdit
                                     ? Container(
                                         padding: EdgeInsets.only(left: 15),
                                         alignment: Alignment.topLeft,
@@ -2648,35 +2530,7 @@ class _main_page extends State<main_page> {
                                                                         .all(Radius
                                                                             .circular(
                                                                                 10)),
-                                                                    image: DecorationImage(image: productData[index][5] == '' ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${productData[index][5]}'),fit: BoxFit.cover)),
-                                                              ),
-                                                            ),
-                                                            Positioned(
-                                                              top: 0,
-                                                              right: 0,
-                                                              child:
-                                                                  GestureDetector(
-                                                                onTap: () {
-                                                                  setState(() {
-                                                                    productData.removeAt(
-                                                                        index);
-                                                                  });
-                                                                },
-                                                                child: Container(
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .center,
-                                                                  decoration: BoxDecoration(
-                                                                      color: Colors
-                                                                          .redAccent,
-                                                                      shape: BoxShape
-                                                                          .circle),
-                                                                  child: Icon(
-                                                                    Icons.remove,
-                                                                    color: Colors
-                                                                        .white,
-                                                                  ),
-                                                                ),
+                                                                    image: DecorationImage(image: productData[index][5] == null ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${productData[index][5]}'),fit: BoxFit.cover)),
                                                               ),
                                                             ),
                                                           ],

@@ -46,6 +46,8 @@ class _forget_page extends State<forget_page>{
   @override
   Widget build(BuildContext context) {
     double _paddingTop = MediaQuery.of(context).padding.top;
+    double _width = MediaQuery.of(context).size.width;
+
     // TODO: implement build
     return Scaffold(
       body: Container(
@@ -57,11 +59,28 @@ class _forget_page extends State<forget_page>{
               height: _paddingTop,
             ),
             Container(
+              height: 50,
               margin: EdgeInsets.only(bottom: 15),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _languageServices.getText('login'),
-                style: _appFontStyle.getTopBarText(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _languageServices.getText('login'),
+                      style: _appFontStyle.getTopBarText(),
+                    ),
+                  ),
+                ],
               ),
             ),
             Container(
@@ -80,13 +99,13 @@ class _forget_page extends State<forget_page>{
               child: Text("Logo"),
             ),
             Container(
-              margin: EdgeInsets.only(bottom: 15),
+              margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
               padding: EdgeInsets.only(left: 15, right: 15),
               alignment: Alignment.centerLeft,
-              height: 55,
+              height: _width/8.5,
               decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                  borderRadius: BorderRadius.all(Radius.circular(25)),
                   boxShadow: [
                     BoxShadow(
                         color: Color.fromRGBO(0, 0, 0, 0.3),
@@ -101,22 +120,24 @@ class _forget_page extends State<forget_page>{
             ),
             GestureDetector(
               onTap: (){
-                Navigator.of(context).pop();
+
               },
               child: Container(
-                alignment: Alignment.center,
-                margin: EdgeInsets.only(bottom: 15),
-                padding: EdgeInsets.only(left: 15, right: 15),
-                height: 55,
-                decoration: BoxDecoration(
-                  color: Color(0xff0092C7),
-                  borderRadius: BorderRadius.all(Radius.circular(4)),
-                ),
-                child: Text(
-//                languageData == null ? 'Loading' : languageData['sendPassword'],
-                  _languageServices.getText('sendPassword'),
-                  style: _appFontStyle.getButtonText(
-                      color: Color(0xffffffff)),
+                margin: EdgeInsets.only(left: 5, right: 5),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
+                  alignment: Alignment.center,
+                  margin: EdgeInsets.only(bottom: 15),
+                  padding: EdgeInsets.only(left: 15, right: 15),
+                  height: _width/8.5,
+                  decoration: BoxDecoration(
+                    color: Color(0xff0092C7),
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                  ),
+                  child: Text(
+                    _languageServices.getText('sendPassword'),
+                    style: _appFontStyle.getButtonText(color: Color(0xffffffff)),
+                  ),
                 ),
               ),
             ),

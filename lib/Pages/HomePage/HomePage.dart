@@ -60,6 +60,7 @@ class _home_page extends State<home_page> {
   }
 
   Future loadConfig()async{
+    await _languageServices.loadDefaultLanguage();
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/pos/loademailconfig.php');
     setState(() {
       configEmail = res.body;

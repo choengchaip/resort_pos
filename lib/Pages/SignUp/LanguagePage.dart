@@ -143,6 +143,7 @@ class _language_page extends State<language_page>{
                 }),
               ),
             ),
+
             GestureDetector(
               onTap: (){
                 setConfigLanguage();

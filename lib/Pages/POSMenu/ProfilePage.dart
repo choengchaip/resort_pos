@@ -69,9 +69,14 @@ class _profile_page extends State<profile_page>{
               padding: EdgeInsets.only(left: 15, right: 15),
               child: Row(
                 children: <Widget>[
-                  Container(
-                    margin: EdgeInsets.only(right: 15),
-                    child: Icon(Icons.arrow_back_ios,color: Colors.white,size: 17,),
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(right: 15),
+                      child: Icon(Icons.arrow_back_ios,color: Colors.white,size: 17,),
+                    ),
                   ),
                   Container(
                     margin: EdgeInsets.only(right: 5),
@@ -106,22 +111,27 @@ class _profile_page extends State<profile_page>{
                         ],
                       ),
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                          border: Border(bottom: BorderSide(color: Color(0xffd5d5d5),width: 0.5))
-                      ),
-                      alignment: Alignment.centerLeft,
-                      height: 60,
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                            margin: EdgeInsets.only(right: 10),
-                            child: Icon(Icons.edit,color: Color(0xff333333),),
-                          ),
-                          Container(
-                            child: Text("Management POS",style: _appFontStyle.getNormalText(),),
-                          ),
-                        ],
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.of(context).pop(true);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Color(0xffd5d5d5),width: 0.5))
+                        ),
+                        alignment: Alignment.centerLeft,
+                        height: 60,
+                        child: Row(
+                          children: <Widget>[
+                            Container(
+                              margin: EdgeInsets.only(right: 10),
+                              child: Icon(Icons.edit,color: Color(0xff333333),),
+                            ),
+                            Container(
+                              child: Text("Management POS",style: _appFontStyle.getNormalText(),),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Container(

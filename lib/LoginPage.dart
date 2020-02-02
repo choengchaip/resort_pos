@@ -92,7 +92,7 @@ class _login_page extends State<login_page> {
   }
 
   Future initLanguage() async {
-    await _languageServices.loadDefaultLanguage();
+    await _languageServices.initLanguage(2);
   }
 
   Future initLocation() async {
