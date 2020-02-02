@@ -34,6 +34,8 @@ class _addpos_page extends State<addpos_page>{
   Widget build(BuildContext context) {
     double _paddingTop = MediaQuery.of(context).padding.top;
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
+    double _width = MediaQuery.of(context).size.width;
+
     // TODO: implement build
     return Scaffold(
       resizeToAvoidBottomPadding: false,
@@ -107,55 +109,53 @@ class _addpos_page extends State<addpos_page>{
                 ),
               ),
             ),
-            Container(
-              margin: EdgeInsets.only(bottom: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: ()async{
-                      if(_posName.text.isEmpty){
-                        await showDialog(context: context,builder: (BuildContext context){
-                          return AlertDialog(
-                            title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
-                            actions: <Widget>[
-                              FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-                            ],
-                          );
-                        });
-                        return;
-                      }
-                      Map<String, String> tmp = {};
-                      tmp['name'] = _posName.text;
-                      tmp['color'] = '0xff${_posColor.value.toRadixString(16)}';
-                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                        return addbusiness_page(tmp);
-                      }));
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: 100,
-                      padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
-                      decoration: BoxDecoration(
-                        color: Color(0xff0092C7),
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            child: Icon(Icons.check_box,color: Colors.white,),
-                          ),
-                          Container(
-                            child: Text(
-                              _languageServices.getText('confirm'),
-                              style: _appFontStyle.getLightText(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            GestureDetector(
+              onTap: ()async{
+                if(_posName.text.isEmpty){
+                  await showDialog(context: context,builder: (BuildContext context){
+                    return AlertDialog(
+                      title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
+                      actions: <Widget>[
+                        FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
+                      ],
+                    );
+                  });
+                return;
+                }
+                Map<String, String> tmp = {};
+                tmp['name'] = _posName.text;
+                tmp['color'] = '0xff${_posColor.value.toRadixString(16)}';
+                Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+                return addbusiness_page(tmp);
+                }));
+              },
+              child: Container(
+                margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
+                  alignment: Alignment.center,
+                  margin: EdgeInsets.only(bottom: 15),
+                  padding: EdgeInsets.only(left: 15, right: 15),
+                  height: _width/8.5,
+                  decoration: BoxDecoration(
+                    color: Color(0xff0092C7),
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
                   ),
-                ],
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Container(
+                        child: Icon(Icons.check_box,color: Colors.white,),
+                      ),
+                      Container(
+                        child: Text(
+                          _languageServices.getText('confirm'),
+                          style: _appFontStyle.getLightText(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             SizedBox(

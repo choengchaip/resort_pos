@@ -56,28 +56,19 @@ class _add_profile extends State<add_profile> {
     if(_file == null){
       if(_authentication.getUserAvatar() != null){
         Navigator.of(context).popUntil((route) => route.isFirst);
-        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context){
           return home_page();
         }));
-        return;
       }
-
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("กรุณาเลือกรูป",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
-
-      setState(() {
-        isLoaded = true;
-      });
+      _authentication.setUserAvatar(null);
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context){
+        return home_page();
+      }));
       return;
     }
 
-    String base64File = base64Encode(_file.readAsBytesSync());
+    String base64File = _file == null ? null : base64Encode(_file.readAsBytesSync());
     String imageName = 'imageprofile_${_authentication.getId()}';
 
     http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/uploadimage.php', body: {
@@ -88,7 +79,7 @@ class _add_profile extends State<add_profile> {
     if(res.body == '1'){
       _authentication.setUserAvatar('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/UserProfile/${imageName}.jpg');
       Navigator.of(context).popUntil((route) => route.isFirst);
-      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context){
         return home_page();
       }));
     }
@@ -121,6 +112,7 @@ class _add_profile extends State<add_profile> {
   Widget build(BuildContext context) {
     double _paddingTop = MediaQuery.of(context).padding.top;
     double _paddingBottom = MediaQuery.of(context).padding.bottom;
+    double _width = MediaQuery.of(context).size.width;
     // TODO: implement build
     return Scaffold(
       body: isLoaded ? Container(
@@ -176,6 +168,7 @@ class _add_profile extends State<add_profile> {
                                 shape: BoxShape.circle,
                                 color: Colors.white,
                               ),
+                              child: Image.asset('assets/icons/user.png'),
                             ):Container(
                               margin: EdgeInsets.only(bottom: 15),
                               height: 210,
@@ -196,8 +189,20 @@ class _add_profile extends State<add_profile> {
                         },
                         child: Container(
                           alignment: Alignment.center,
-                          child: Text('${_languageServices.getText('add')}${_languageServices.getText('picture')}',
-                          style: _appFontStyle.getLightText(),),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Container(
+                                padding: EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  color: Color(0xff0092C7),
+                                  borderRadius: BorderRadius.all(Radius.circular(25))
+                                ),
+                                child: Text('${_languageServices.getText('add')}${_languageServices.getText('picture')}',
+                                style: _appFontStyle.getLightText(color: Colors.white),),
+                              ),
+                            ],
+                          ),
                         ),
                       )
                     ],
@@ -205,80 +210,34 @@ class _add_profile extends State<add_profile> {
                 ),
               ),
             ),
-            Container(
-              margin: EdgeInsets.only(bottom: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: (){
-                      _authentication.setUserAvatar(null);
-                      uploadUserData().then((e){
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                          return home_page();
-                        }));
-                      });
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: 100,
-                      margin: EdgeInsets.only(right: 25),
-                      padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
-                      decoration: BoxDecoration(
-                        color: Color(0xff707070),
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            child: Icon(Icons.arrow_forward,color: Colors.white,),
-                          ),
-                          Container(
-                            child: Text(
-                              _languageServices.getText('skip'),
-                              style: _appFontStyle.getLightText(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            GestureDetector(
+              onTap: (){
+                uploadUserData().then((a){
+                  uploadImageToServer();
+                }).catchError((a) {
+                  setState(() {
+                    isLoaded = true;
+                  });
+                  return;
+                });
+              },
+              child: Container(
+                margin: EdgeInsets.only(top: 15,left: 5, right: 5),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
+                  alignment: Alignment.center,
+                  margin: EdgeInsets.only(bottom: 15),
+                  padding: EdgeInsets.only(left: 15, right: 15),
+                  height: _width/8.5,
+                  decoration: BoxDecoration(
+                    color: Color(0xff0092C7),
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
                   ),
-                  GestureDetector(
-                    onTap: (){
-                      uploadUserData().then((a){
-                        uploadImageToServer();
-                      }).catchError((a){
-                        setState(() {
-                          isLoaded = true;
-                        });
-                        return;
-                      });
-                    },
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: 100,
-                      padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
-                      decoration: BoxDecoration(
-                        color: Color(0xff0092C7),
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            child: Icon(Icons.check_box,color: Colors.white,),
-                          ),
-                          Container(
-                            child: Text(
-                              _languageServices.getText('confirm'),
-                              style: _appFontStyle.getLightText(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  child: Text(
+                    _languageServices.getText('agree'),
+                    style: _appFontStyle.getButtonText(color: Color(0xffffffff)),
                   ),
-                ],
+                ),
               ),
             ),
             SizedBox(

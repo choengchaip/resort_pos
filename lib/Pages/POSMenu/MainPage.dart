@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:resort_pos/LoginPage.dart';
+import 'package:resort_pos/Pages/POSMenu/ProfilePage.dart';
 import 'package:resort_pos/Services/AppFontStyles.dart';
 import 'package:resort_pos/Services/Authentication.dart';
 import 'package:resort_pos/Services/LanguageService.dart';
@@ -149,6 +150,7 @@ class _main_page extends State<main_page> {
     Navigator.of(context).pop();
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
     Map<String, String> categoryData = {
+      'user_id': _authentication.getId(),
       'is_update': isUpdate,
       'pos_id': _posService.getPosId(),
       'name': _categoryName.text,
@@ -164,6 +166,7 @@ class _main_page extends State<main_page> {
     http.Response res = await http.post(
         '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addposcategory.php',
         body: categoryData);
+    print(res.body);
     if (res.body != '1') {}
     clearCategory();
     setState(() {
@@ -714,6 +717,7 @@ class _main_page extends State<main_page> {
 
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
     Map<String, String> postTypeData = {
+      'user_id': _authentication.getId(),
       'is_update': isUpdate,
       'product_type_id': productTypeId,
       'category_id': _type[_categorySelect]['id'],
@@ -1421,6 +1425,7 @@ class _main_page extends State<main_page> {
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
 
     Map<String, String> _productData = {
+      'user_id': _authentication.getId(),
       'is_update': isUpdate,
       'product_type_id': productType[_productTypeSelect][0],
       'name': _productName.text,
@@ -1976,15 +1981,9 @@ class _main_page extends State<main_page> {
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          _sqLiteDatabase
-                                              .clearCurrentUser()
-                                              .then((e) {
-                                            Navigator.pushReplacement(context,
-                                                MaterialPageRoute(builder:
-                                                    (BuildContext context) {
-                                              return login_page();
-                                            }));
-                                          });
+                                          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+                                            return profile_page();
+                                          }));
                                         },
                                         child: _authentication
                                                     .getUserAvatar() !=
@@ -2037,58 +2036,60 @@ class _main_page extends State<main_page> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                      child: _type.length == 1 ? Container(
-                                        padding: EdgeInsets.only(
-                                            left: 15, right: 15),
-                                        height: 85,
-                                        alignment: Alignment.centerLeft,
-                                        child: GestureDetector(
-                                          onTap: (){
-                                            setState(() {
-                                              isEdit = true;
-                                            });
-                                            addCategory();
-                                          },
-                                          child: Container(
-                                            alignment: Alignment.centerLeft,
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: <
-                                                  Widget>[
-                                                Container(
-                                                  margin: EdgeInsets.only(
-                                                      bottom:
-                                                      5),
-                                                  height: 40,
-                                                  width: 40,
-                                                  decoration:
-                                                  BoxDecoration(
-                                                    shape: BoxShape
-                                                        .circle,
-                                                    color: Color(
-                                                        0xffb1b1b1),
-                                                  ),
-                                                  child: Icon(
-                                                    Icons
-                                                        .add_to_photos,
-                                                    color: Color(
-                                                        0xff656565),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  child: Text(
-                                                    _languageServices
-                                                        .getText(
-                                                        'add'),
-                                                    style: _appFontStyle
-                                                        .getNormalText(),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        )
-                                      ): isEdit
+                                    child:
+//                                      child: _type.length == 1 ? Container(
+//                                        padding: EdgeInsets.only(
+//                                            left: 15, right: 15),
+//                                        height: 85,
+//                                        alignment: Alignment.centerLeft,
+//                                        child: GestureDetector(
+//                                          onTap: (){
+//                                            setState(() {
+//                                              isEdit = true;
+//                                            });
+//                                            addCategory();
+//                                          },
+//                                          child: Container(
+//                                            alignment: Alignment.centerLeft,
+//                                            child: Column(
+//                                              mainAxisAlignment: MainAxisAlignment.center,
+//                                              children: <
+//                                                  Widget>[
+//                                                Container(
+//                                                  margin: EdgeInsets.only(
+//                                                      bottom:
+//                                                      5),
+//                                                  height: 40,
+//                                                  width: 40,
+//                                                  decoration:
+//                                                  BoxDecoration(
+//                                                    shape: BoxShape
+//                                                        .circle,
+//                                                    color: Color(
+//                                                        0xffb1b1b1),
+//                                                  ),
+//                                                  child: Icon(
+//                                                    Icons
+//                                                        .add_to_photos,
+//                                                    color: Color(
+//                                                        0xff656565),
+//                                                  ),
+//                                                ),
+//                                                Container(
+//                                                  child: Text(
+//                                                    _languageServices
+//                                                        .getText(
+//                                                        'add'),
+//                                                    style: _appFontStyle
+//                                                        .getNormalText(),
+//                                                  ),
+//                                                ),
+//                                              ],
+//                                            ),
+//                                          ),
+//                                        )
+//                                      ):
+                                      isEdit
                                           ? Container(
                                               padding: EdgeInsets.only(
                                                   left: 15, right: 15),
