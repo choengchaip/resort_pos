@@ -111,7 +111,7 @@ class _profile_page extends State<profile_page>{
                         ],
                       ),
                     ),
-                    GestureDetector(
+                    _posService.getPermissionId() == '1' || _posService.getPermissionId() == '2' ? GestureDetector(
                       onTap: (){
                         Navigator.of(context).pop(true);
                       },
@@ -133,7 +133,7 @@ class _profile_page extends State<profile_page>{
                           ],
                         ),
                       ),
-                    ),
+                    ):Container(),
                     Container(
                       decoration: BoxDecoration(
                           border: Border(bottom: BorderSide(color: Color(0xffd5d5d5),width: 0.5))

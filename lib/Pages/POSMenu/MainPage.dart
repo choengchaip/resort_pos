@@ -2303,13 +2303,6 @@ class _main_page extends State<main_page> {
                                                         });
                                                       });
                                                     },
-                                                    onLongPress: (){
-                                                      if(_posService.getPermissionId() == '1' || _posService.getPermissionId() == '2'){
-                                                        setState(() {
-                                                          isEdit = true;
-                                                        });
-                                                      }
-                                                    },
                                                     child: Container(
                                                       margin: EdgeInsets.only(right: 15),
                                                       child: Column(
@@ -2423,13 +2416,6 @@ class _main_page extends State<main_page> {
                                             return Container();
                                           }
                                           return _type[_categorySelect]['status'] == '1' ? productType[index][3] == '1' ? GestureDetector(
-                                            onLongPress: (){
-                                              if(_posService.getPermissionId() == '1' || _posService.getPermissionId() == '2'){
-                                                setState(() {
-                                                  isEdit = true;
-                                                });
-                                              }
-                                            },
                                             onTap: (){
                                               setState(() {
                                                 _productTypeSelect = index;
@@ -2577,13 +2563,6 @@ class _main_page extends State<main_page> {
                                               spacing: _posService.getRowNumber() == 2 ? 20: 22,
                                               children: List.generate(realProductData.length, (index) {
                                                 return _type.length != 0 ? productType.length != 0 ? _type[_categorySelect]['status'] == '1' ? productType[_productTypeSelect][3] == '1' ? GestureDetector(
-                                                  onLongPress: (){
-                                                    if(_posService.getPermissionId() == '1' || _posService.getPermissionId() == '2'){
-                                                      setState(() {
-                                                        isEdit = true;
-                                                      });
-                                                    }
-                                                  },
                                                   child: Container(
                                                     child: Column(
                                                       crossAxisAlignment:
