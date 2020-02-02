@@ -54,6 +54,14 @@ class _add_profile extends State<add_profile> {
 
   Future uploadImageToServer()async{
     if(_file == null){
+      if(_authentication.getUserAvatar() != null){
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+          return home_page();
+        }));
+        return;
+      }
+
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
           title: Text("กรุณาเลือกรูป",style: _appFontStyle.getSmallButtonText(),),
@@ -62,12 +70,7 @@ class _add_profile extends State<add_profile> {
           ],
         );
       });
-      if(_authentication.getUserAvatar() != null){
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-          return home_page();
-        }));
-      }
+
       setState(() {
         isLoaded = true;
       });
@@ -92,6 +95,10 @@ class _add_profile extends State<add_profile> {
   }
 
   Future uploadUserData()async{
+    print(_authentication.getAuthType());
+    if(_authentication.getAuthType() != 'email'){
+      return;
+    }
     setState(() {
       isLoaded = false;
     });

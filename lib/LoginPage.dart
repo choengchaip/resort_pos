@@ -52,6 +52,7 @@ class _login_page extends State<login_page> {
       'autologin': 'auto',
       'password': result[0]['password'],
       'facebook_id': result[0]['providerid'],
+      'google_id': result[0]['providerid'],
       'userautoid': result[0]['userid'],
       'latitude': currentLocation['latitude'].toString(),
       'longitude': currentLocation['longitude'].toString()
@@ -302,6 +303,86 @@ class _login_page extends State<login_page> {
       print(err);
     }
     print(_googleUser);
+    GoogleSignInAuthentication _googleAuth = await _googleUser.authentication;
+
+    String googleId = _googleUser.id;
+    String token = _googleAuth.accessToken;
+    String firstName = _googleUser.displayName.split(' ')[0];
+    String lastName = _googleUser.displayName.split(' ')[1];
+    String email = _googleUser.email;
+    String avatar = _googleUser.photoUrl;
+    String fullName = _googleUser.displayName;
+
+    Map<String, double> currentLocation = _authentication.getCurrentPosition();
+    Map<String, dynamic> userData = {
+      'login_type': 'google',
+      'google_id': googleId,
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString()
+    };
+    http.Response res = await http.post(
+        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/login/login.php',
+        body: userData);
+    if(res.body == '0'){
+      Map<String, dynamic> userData = {
+        'register_type': 'google',
+        'access_token': token,
+        'firstname': firstName,
+        'lastname': lastName,
+        'provider': 'google',
+        'google_id': googleId,
+        'email': email.isEmpty ? null : email,
+        'latitude': currentLocation['latitude'].toString(),
+        'longitude': currentLocation['longitude'].toString(),
+        'avatar': avatar
+      };
+      http.Response res = await http.post(
+          '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/createaccount.php',
+          body: userData);
+      if(res.body == 'exist') {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("${_languageServices.getText('email')}${_languageServices.getText('used')}"),
+                content: Text("${_languageServices.getText('please')}${_languageServices.getText('login')}${_languageServices.getText('or')}${_languageServices.getText('singUp')}${_languageServices.getText('with')}${_languageServices.getText('anotherOption')}"),
+                actions: <Widget>[
+                  FlatButton(onPressed: () {
+                    Navigator.of(context).pop();
+                  }, child: Text("${_languageServices.getText('confirm')}"),)
+                ],
+              );
+            });
+        return;
+      }else if (res.body != '0') {
+        String userId = res.body;
+        _authentication.setUserId(userId);
+        _authentication.setUserEmail(email.isEmpty ? '' : email);
+        _authentication.setUserName(fullName);
+        _authentication.setLoginStatus(true);
+        _authentication.setUserAvatar(avatar);
+        await _sqLiteDatabase.initialDatabase(
+            _authentication.getId(), 'google',
+            providerid: googleId);
+        Navigator.push(context,
+            MaterialPageRoute(builder: (BuildContext context) {
+              return language_page();
+            }));
+      }
+    }else{
+      var userData = jsonDecode(res.body);
+      _authentication.setUserId(userData[0]);
+      _authentication.setUserName(userData[1]);
+      _authentication.setUserEmail(userData[2]);
+      _authentication.setUserAvatar(userData[3]);
+      await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'google',
+          providerid: googleId);
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (BuildContext context) {
+            return home_page();
+          }));
+    }
   }
 
   @override
@@ -548,6 +629,7 @@ class _login_page extends State<login_page> {
                             ),
                             GestureDetector(
                               onTap: (){
+                                _authentication.setAuthType('google');
                                 loginWithGoogle();
                               },
                               child: Container(

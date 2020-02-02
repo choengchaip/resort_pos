@@ -29,10 +29,12 @@ class _main_page extends State<main_page> {
   int _currentPage;
   bool searchExpand = false;
   bool isLoaded;
-  List<String> _list;
   List<Map<String, String>> _type;
 
   bool isEdit = false;
+  bool categoryLoad = false;
+  bool typeLoad = false;
+  bool productLoad = false;
 
   //Category
   TextEditingController _categoryName = TextEditingController();
@@ -49,6 +51,7 @@ class _main_page extends State<main_page> {
 
   //Product
   List<dynamic> productData;
+  List<dynamic> realProductData;
   TextEditingController _productName = TextEditingController();
   TextEditingController _productPrice = TextEditingController();
   File _productImage;
@@ -111,6 +114,39 @@ class _main_page extends State<main_page> {
   }
 
   Future uploadCategory({isUpdate: 'false', oldImage: '', categoryId: ''}) async {
+    if(_categoryName.text.isEmpty){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text(_languageServices.getText('confirm')),)
+          ],
+        );
+      });
+      setState(() {
+        isLoaded = true;
+      });
+      return;
+    }
+
+    if(_categoryImageName == null){
+      await showDialog(context: context,builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('picture')}",style: _appFontStyle.getSmallButtonText(),),
+          actions: <Widget>[
+            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text(_languageServices.getText('confirm')),)
+          ],
+        );
+      });
+      setState(() {
+        isLoaded = true;
+      });
+      return;
+    }
+    setState(() {
+      isLoaded = true;
+    });
+    Navigator.of(context).pop();
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
     Map<String, String> categoryData = {
       'is_update': isUpdate,
@@ -129,6 +165,10 @@ class _main_page extends State<main_page> {
         '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addposcategory.php',
         body: categoryData);
     if (res.body != '1') {}
+    clearCategory();
+    setState(() {
+      isLoaded = false;
+    });
   }
 
   Future addCategoryImage() async {
@@ -348,8 +388,7 @@ class _main_page extends State<main_page> {
                               });
                               uploadCategory().then((e) {
                                 loadCategoryData().then((e) {
-                                  clearCategory();
-                                  Navigator.of(context).pop();
+
                                 });
                               });
                             },
@@ -393,7 +432,6 @@ class _main_page extends State<main_page> {
   }
 
   Future editCategory(Map<String, dynamic> categoryData) async {
-    print(categoryData);
     String oldImage = categoryData['image'];
     setState(() {
       _categoryName.text = categoryData['name'];
@@ -567,14 +605,8 @@ class _main_page extends State<main_page> {
                               setState(() {
                                 isLoaded = false;
                               });
-                              uploadCategory(
-                                      isUpdate: 'true',
-                                      oldImage: oldImage,
-                                      categoryId: categoryData['id'])
-                                  .then((e) {
-                                loadCategoryData().then((e) {
+                              uploadCategory(isUpdate: 'true', oldImage: oldImage, categoryId: categoryData['id']).then((e) {loadCategoryData().then((e) {
                                   clearCategory();
-                                  Navigator.of(context).pop();
                                 });
                               });
                             },
@@ -634,19 +666,8 @@ class _main_page extends State<main_page> {
 
   Future loadCategoryData() async {
     setState(() {
-//      isLoaded = false;
+      categoryLoad = true;
     });
-    _list = [
-      'Pizza1',
-      'Pizza2',
-      'Pizza3',
-      'Pizza4',
-      'Pizza5',
-      'Pizza6',
-      'Pizza7',
-      'Pizza8',
-      'dummy'
-    ];
 
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getposcategory.php?pos_id=${_posService.getPosId()}');
     List<dynamic> _tmpType = jsonDecode(res.body);
@@ -661,8 +682,10 @@ class _main_page extends State<main_page> {
         'position': _tmpType[i][4]
       });
     }
+    _tmp.add({'name':'dummy'});
     setState(() {
       _type = _tmp;
+      categoryLoad = false;
       isLoaded = true;
     });
   }
@@ -677,8 +700,18 @@ class _main_page extends State<main_page> {
           ],
         );
       });
+      setState(() {
+        isLoaded = false;
+      });
       return;
     }
+
+    Navigator.of(context).pop();
+
+    setState(() {
+      isLoaded = true;
+    });
+
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
     Map<String, String> postTypeData = {
       'is_update': isUpdate,
@@ -689,9 +722,11 @@ class _main_page extends State<main_page> {
       'latitude': currentLocation['latitude'].toString(),
       'longitude': currentLocation['longitude'].toString()
     };
-    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproducttype.php',body: postTypeData);
-    print(res.body);
+    await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproducttype.php',body: postTypeData);
     clearProductType();
+    setState(() {
+      isLoaded = false;
+    });
   }
 
   Future addProductType()async{
@@ -825,8 +860,9 @@ class _main_page extends State<main_page> {
                             isLoaded = false;
                           });
                           uploadProductType().then((e){
-                            loadCategoryType(_categorySelect);
-                            Navigator.of(context).pop();
+                            loadCategoryType(_categorySelect).then((b){
+
+                            });
                           });
                         },
                         child: Container(
@@ -1005,7 +1041,6 @@ class _main_page extends State<main_page> {
                           });
                           uploadProductType(isUpdate: 'true',productTypeId: product_type_id).then((e){
                             loadCategoryType(_categorySelect);
-                            Navigator.of(context).pop();
                           });
                         },
                         child: Container(
@@ -1049,28 +1084,40 @@ class _main_page extends State<main_page> {
 
   Future loadCategoryType(int index)async{
     setState(() {
-//      isLoaded = false;
+      productLoad = true;
       _productTypeSelect = 0;
     });
-    String tmp = _type.length == 0 ? null : _type[index]['id'];
+    String tmp = _type.length == 1 ? null : _type[index]['id'];
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getproducttype.php?category_id=${tmp}');
     List<dynamic> _productType = jsonDecode(res.body);
+    _productType.add(['dummy']);
     setState(() {
       productType = _productType;
+      productLoad = false;
       isLoaded = true;
     });
   }
 
   Future loadProduct(int index)async{
     setState(() {
-//      isLoaded = false;
+      productLoad = true;
     });
-    String tmp = productType.length == 0 ? null : productType[index][0];
+    String tmp = productType.length == 1 ? null : productType[index][0];
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getproduct.php?type_id=${tmp}');
     List<dynamic> _productTmp = jsonDecode(res.body);
+    List<dynamic> tmp2 = [];
     print(_productTmp);
+    _productTmp.add(['dummy']);
+    for(int i=0;i<_productTmp.length-1;i++){
+      if(_productTmp[i][6] == '1'){
+        tmp2.add(_productTmp[i]);
+      }
+    }
     setState(() {
       productData = _productTmp;
+      realProductData = tmp2;
+      print(productData);
+      productLoad = false;
       isLoaded = true;
     });
   }
@@ -1279,8 +1326,7 @@ class _main_page extends State<main_page> {
                               });
                                 uploadProduct().then((a){
                                   loadProduct(_productTypeSelect).then((b){
-                                    clearProduct();
-                                    Navigator.of(context).pop();
+
                                   });
                                 });
                               },
@@ -1334,6 +1380,9 @@ class _main_page extends State<main_page> {
           ],
         );
       });
+      setState(() {
+        isLoaded = true;
+      });
       return;
     }
     if(_productPrice.text.isEmpty){
@@ -1344,6 +1393,9 @@ class _main_page extends State<main_page> {
             FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
           ],
         );
+      });
+      setState(() {
+        isLoaded = true;
       });
       return;
     }
@@ -1357,8 +1409,13 @@ class _main_page extends State<main_page> {
           ],
         );
       });
+      setState(() {
+        isLoaded = true;
+      });
       return;
     }
+
+    Navigator.of(context).pop();
 
     String imageName = _productImage == null ? '' : base64Encode(_productImage.readAsBytesSync());
     Map<String, double> currentLocation = _authentication.getCurrentPosition();
@@ -1377,12 +1434,14 @@ class _main_page extends State<main_page> {
       'product_id': productId,
       'old_image': oldImage
     };
-    print(_productData);
     http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproduct.php', body: _productData);
-    print(res.body);
     if(res.body == '1'){
 
     }
+    clearProduct();
+    setState(() {
+      isLoaded = false;
+    });
   }
 
   Future editProduct(List<dynamic> _productData)async{
@@ -1596,7 +1655,6 @@ class _main_page extends State<main_page> {
                                 uploadProduct(isUpdate: 'true',oldImage: oldImage,productId: _productData[0]).then((a){
                                   loadProduct(_productTypeSelect).then((b){
                                     clearProduct();
-                                    Navigator.of(context).pop();
                                   });
                                 });
                               },
@@ -1644,18 +1702,33 @@ class _main_page extends State<main_page> {
   Future deleteProduct(id)async{}
 
   void categoryReoder(int oldIndex, int newIndex) {
+    if(oldIndex == _type.length -1){
+      return;
+    }else if(newIndex == _type.length -1){
+      return;
+    }
     setState(() {
       _type.insert(newIndex, _type.removeAt(oldIndex));
     });
   }
 
   void categoryTypeReorder(int oldIndex, int newIndex){
+    if(oldIndex == productType.length -1){
+      return;
+    }else if(newIndex == productType.length -1){
+      return;
+    }
     setState(() {
       productType.insert(newIndex, productType.removeAt(oldIndex));
     });
   }
 
   void productReorder(int oldIndex, int newIndex) {
+    if(oldIndex == productData.length -1){
+      return;
+    }else if(newIndex == productData.length -1){
+      return;
+    }
     setState(() {
       productData.insert(newIndex, productData.removeAt(oldIndex));
     });
@@ -1675,12 +1748,26 @@ class _main_page extends State<main_page> {
       });
       onEntry().then((e) {
         loadCategoryData().then((a){
-          print('ty');
-          print(_type);
-          loadCategoryType(0).then((b){
-            print('pt');
-            print(productType);
-            loadProduct(0).then((c){
+          for(int i=0;i<_type.length;i++){
+            if(_type[i]['status'] == '1'){
+              setState(() {
+                _categorySelect = i;
+              });
+              break;
+            }
+          }
+          loadCategoryType(_categorySelect).then((b){
+            if(productType.length > 1){
+              for(int i=0;i<productType.length;i++){
+                if(productType[i][3] == '1'){
+                  setState(() {
+                    _productTypeSelect = i;
+                  });
+                  break;
+                }
+              }
+            }
+            loadProduct(_productTypeSelect).then((c){
               print('p');
               print(productData);
               setState(() {
@@ -1913,8 +2000,7 @@ class _main_page extends State<main_page> {
                                                       1, 1, 1, 0.4),
                                                   image: DecorationImage(
                                                       image: NetworkImage(
-                                                        _authentication
-                                                            .getUserAvatar(),
+                                                        _authentication.getUserAvatar(),
                                                       ),
                                                       fit: BoxFit.cover),
                                                 ),
@@ -1951,7 +2037,7 @@ class _main_page extends State<main_page> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                      child: _type.length == 0 ? Container(
+                                      child: _type.length == 1 ? Container(
                                         padding: EdgeInsets.only(
                                             left: 15, right: 15),
                                         height: 85,
@@ -2018,10 +2104,9 @@ class _main_page extends State<main_page> {
                                                           Axis.horizontal,
                                                       onReorder: categoryReoder,
                                                       children: List.generate(
-                                                          _type.length+1,
+                                                          _type.length,
                                                           (int index) {
-                                                        if (index ==
-                                                            _type.length) {
+                                                        if (index == _type.length -1) {
                                                           return GestureDetector(
                                                             onTap: () {
                                                               addCategory();
@@ -2076,12 +2161,10 @@ class _main_page extends State<main_page> {
                                                                                 '1'
                                                                             ? 0.3
                                                                             : 1,
-                                                                    child:
-                                                                        GestureDetector(
+                                                                    child: GestureDetector(
                                                                       onTap:
                                                                           () {
-                                                                        editCategory(
-                                                                            _type[index]);
+                                                                        editCategory(_type[index]);
                                                                       },
                                                                       child:
                                                                           Container(
@@ -2171,7 +2254,7 @@ class _main_page extends State<main_page> {
                                                 ),
                                               ),
                                             )
-                                          : Container(
+                                          : categoryLoad ? Container(alignment: Alignment.centerLeft, child: CircularProgressIndicator(),):Container(
                                               padding: EdgeInsets.only(
                                                   left: 15, right: 15),
                                               height: 85,
@@ -2182,20 +2265,29 @@ class _main_page extends State<main_page> {
                                               scrollDirection: Axis.horizontal,
                                               itemCount: _type.length ,
                                               itemBuilder: (BuildContext context, int index){
+                                                if(index == _type.length - 1){
+                                                  return Container();
+                                                }
                                                 if(_type[index]['status'] == '1'){
                                                   return GestureDetector(
                                                     onTap: (){
                                                       setState(() {
                                                         _categorySelect = index;
+                                                        setState(() {
+                                                          productLoad = true;
+                                                          print(productLoad);
+                                                        });
                                                         loadCategoryType(_categorySelect).then((e){
                                                           loadProduct(_productTypeSelect);
                                                         });
                                                       });
                                                     },
                                                     onLongPress: (){
-                                                      setState(() {
-                                                        isEdit = true;
-                                                      });
+                                                      if(_posService.getPermissionId() == '1' || _posService.getPermissionId() == '2'){
+                                                        setState(() {
+                                                          isEdit = true;
+                                                        });
+                                                      }
                                                     },
                                                     child: Container(
                                                       margin: EdgeInsets.only(right: 15),
@@ -2244,10 +2336,10 @@ class _main_page extends State<main_page> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                    child: productType == null ? Container() : productType.length == 0 ? Container(
+                                    child: productType == null ? Container() : productType.length == 1 ? Container(
                                       child: GestureDetector(
                                         onTap: (){
-                                          if(_type.length == 0){
+                                          if(_type.length == 1){
                                             return;
                                           }
                                           setState(() {
@@ -2279,8 +2371,8 @@ class _main_page extends State<main_page> {
                                         child: ReorderableWrap(
                                           onReorder: categoryTypeReorder,
                                           scrollDirection: Axis.horizontal,
-                                          children: List.generate(productType == null ? 0 : productType.length+1, (int index){
-                                            if(index == productType.length){
+                                          children: List.generate(productType == null ? 0 : productType.length, (int index){
+                                            if(index == productType.length - 1){
                                               return GestureDetector(
                                                 onTap: (){
                                                   addProductType();
@@ -2305,13 +2397,15 @@ class _main_page extends State<main_page> {
                                                 ),
                                               );
                                             }
-                                            return Container(
+                                            return productType[index][3] != '0' ? Container(
                                               child: Stack(
                                                 children: <Widget>[
                                                   GestureDetector(
                                                     onTap: (){
                                                       setState(() {
-                                                        editProductType(productType[index]);
+                                                        editProductType(productType[index]).then((e){
+                                                          loadProduct(0);
+                                                        });
                                                       });
                                                     },
                                                     child: Container(
@@ -2377,16 +2471,26 @@ class _main_page extends State<main_page> {
                                                   ),
                                                 ],
                                               ),
-                                            );
+                                            ):Container();
                                           }),
                                         ),
                                       ),
-                                    ):Container(
+                                    ):typeLoad ? Container(alignment: Alignment.centerLeft,child: CircularProgressIndicator(),) : Container(
                                       child: ListView.builder(
                                         scrollDirection: Axis.horizontal,
                                         itemCount: productType == null ? 0 : productType.length,
                                         itemBuilder: (BuildContext context, int index){
-                                          return productType[index][3] == '1' ? GestureDetector(
+                                          if(index == productType.length - 1){
+                                            return Container();
+                                          }
+                                          return _type[_categorySelect]['status'] == '1' ? productType[index][3] == '1' ? GestureDetector(
+                                            onLongPress: (){
+                                              if(_posService.getPermissionId() == '1' || _posService.getPermissionId() == '2'){
+                                                setState(() {
+                                                  isEdit = true;
+                                                });
+                                              }
+                                            },
                                             onTap: (){
                                               setState(() {
                                                 _productTypeSelect = index;
@@ -2402,7 +2506,7 @@ class _main_page extends State<main_page> {
                                                     color: _productTypeSelect == index ? Color(int.parse(_posService.getPosColor())):Colors.grey),
                                               ),
                                             ),
-                                          ):Container();
+                                          ):Container():Container();
                                         },
                                       ),
                                     ),
@@ -2411,7 +2515,7 @@ class _main_page extends State<main_page> {
                               ),
                             ),
                             Expanded(
-                                child: productData == null ? Container() : productData.length == 0 ? Container(
+                                child: productData == null ? Container() : productData.length == 1 ? Container(
                                   padding: EdgeInsets.only(left: 15),
                                   alignment: Alignment.topLeft,
                                       child: SingleChildScrollView(
@@ -2423,7 +2527,7 @@ class _main_page extends State<main_page> {
                                           children: <Widget>[
                                             GestureDetector(
                                               onTap: (){
-                                                if(productType.length == 0){
+                                                if(productType.length == 1){
 //                                                  showDialog(
 //                                                    context: context,
 //                                                    builder: (BuildContext context){
@@ -2478,8 +2582,8 @@ class _main_page extends State<main_page> {
                                             spacing: 20,
                                             runSpacing: 20,
                                             children: List.generate(
-                                                productData == null ? 0 :productData.length+1, (index) {
-                                              if (index == productData.length) {
+                                                productData == null ? 0 :productData.length, (index) {
+                                              if (index == productData.length - 1) {
                                                 return GestureDetector(
                                                   onTap: (){
                                                     addProduct();
@@ -2522,26 +2626,29 @@ class _main_page extends State<main_page> {
                                                       Container(
                                                         child: Stack(
                                                           children: <Widget>[
-                                                            Container(
-                                                              height: _posService
-                                                                          .getWidth() /
-                                                                      _posService
-                                                                          .getRowNumber() -
-                                                                  25,
-                                                              width: _posService
-                                                                          .getWidth() /
-                                                                      _posService
-                                                                          .getRowNumber() -
-                                                                  25,
-                                                              decoration: BoxDecoration(
-                                                                  color: Color(int
-                                                                      .parse(_posService
-                                                                          .getPosColor())),
-                                                                  borderRadius: BorderRadius
-                                                                      .all(Radius
-                                                                          .circular(
-                                                                              10)),
-                                                                  image: DecorationImage(image: productData[index][5] == '' ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${productData[index][5]}'),fit: BoxFit.cover)),
+                                                            Opacity(
+                                                              opacity: productData[index][6] == '1' ? 1 : 0.3,
+                                                              child: Container(
+                                                                height: _posService
+                                                                            .getWidth() /
+                                                                        _posService
+                                                                            .getRowNumber() -
+                                                                    25,
+                                                                width: _posService
+                                                                            .getWidth() /
+                                                                        _posService
+                                                                            .getRowNumber() -
+                                                                    25,
+                                                                decoration: BoxDecoration(
+                                                                    color: Color(int
+                                                                        .parse(_posService
+                                                                            .getPosColor())),
+                                                                    borderRadius: BorderRadius
+                                                                        .all(Radius
+                                                                            .circular(
+                                                                                10)),
+                                                                    image: DecorationImage(image: productData[index][5] == '' ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${productData[index][5]}'),fit: BoxFit.cover)),
+                                                              ),
                                                             ),
                                                             Positioned(
                                                               top: 0,
@@ -2598,8 +2705,7 @@ class _main_page extends State<main_page> {
                                             onReorder: productReorder,
                                           ),
                                         ),
-                                      )
-                                    : Container(
+                                      ) :productLoad ? Container(alignment: Alignment.center, child: CircularProgressIndicator(),) : Container(
                                         padding: EdgeInsets.only(top: 10),
                                         child: ListView(
                                           shrinkWrap: true,
@@ -2614,13 +2720,14 @@ class _main_page extends State<main_page> {
                                                   WrapAlignment.start,
                                               runSpacing: 10,
                                               spacing: _posService.getRowNumber() == 2 ? 20: 22,
-                                              children: List.generate(
-                                                  productData.length, (index) {
-                                                return GestureDetector(
+                                              children: List.generate(realProductData.length, (index) {
+                                                return _type.length != 0 ? productType.length != 0 ? _type[_categorySelect]['status'] == '1' ? productType[_productTypeSelect][3] == '1' ? GestureDetector(
                                                   onLongPress: (){
-                                                    setState(() {
-                                                      isEdit = true;
-                                                    });
+                                                    if(_posService.getPermissionId() == '1' || _posService.getPermissionId() == '2'){
+                                                      setState(() {
+                                                        isEdit = true;
+                                                      });
+                                                    }
                                                   },
                                                   child: Container(
                                                     child: Column(
@@ -2642,7 +2749,7 @@ class _main_page extends State<main_page> {
                                                           decoration: BoxDecoration(
                                                               color: Color(int.parse(_posService.getPosColor())),
                                                               borderRadius: BorderRadius.all(Radius.circular(10)),
-                                                              image: DecorationImage(image: productData[index][5] == '' ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${productData[index][5]}'),fit: BoxFit.cover)
+                                                              image: DecorationImage(image: realProductData[index][5] == '' ? AssetImage('assets/images/pos-logo.png') : NetworkImage('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/Images/PosProduct/${realProductData[index][5]}'),fit: BoxFit.cover)
                                                           ),
                                                         ),
                                                         Container(
@@ -2651,13 +2758,13 @@ class _main_page extends State<main_page> {
                                                               _posService
                                                                   .getRowNumber() -
                                                               25,
-                                                          child: Text(productData[index][2],
+                                                          child: Text(realProductData[index][2],
                                                             style: _appFontStyle.getSmallButtonText(),
                                                           ),
                                                         ),
                                                         Container(
                                                           child: Text(
-                                                            '${productData[index][3]}฿',
+                                                            '${realProductData[index][3]}฿',
                                                             style: _appFontStyle
                                                                 .getNormalText(
                                                                     color: Color(
@@ -2667,7 +2774,7 @@ class _main_page extends State<main_page> {
                                                       ],
                                                     ),
                                                   ),
-                                                );
+                                                ):Container():Container():Container():Container();
                                               }),
                                             ),
                                           ],
@@ -2703,8 +2810,7 @@ class _main_page extends State<main_page> {
                                         child: Icon(
                                           Icons.chrome_reader_mode,
                                           size: 30,
-                                          color: _currentPage == 0
-                                              ? Color(int.parse(
+                                          color: _currentPage == 0 ? Color(int.parse(
                                                   _posService.getPosColor()))
                                               : Color(0xff333333),
                                         ),
@@ -2783,6 +2889,31 @@ class _main_page extends State<main_page> {
                           isEdit ? Expanded(
                             child: GestureDetector(
                               onTap: (){
+                                for(int i=0;i<_type.length;i++){
+                                  if(_type[i]['status'] == '1'){
+                                    setState(() {
+                                      _categorySelect = i;
+                                    });
+                                    break;
+                                  }
+                                }
+                                loadCategoryType(_categorySelect).then((b){
+                                  if(productType.length > 1){
+                                    for(int i=0;i<productType.length;i++){
+                                      if(productType[i][3] == '1'){
+                                        setState(() {
+                                          _productTypeSelect = i;
+                                        });
+                                        break;
+                                      }
+                                    }
+                                  }
+                                  loadProduct(_productTypeSelect).then((c){
+                                    setState(() {
+                                      isLoaded = true;
+                                    });
+                                  });
+                                });
                                 setState(() {
                                   isEdit = false;
                                 });
