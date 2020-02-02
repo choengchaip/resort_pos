@@ -240,15 +240,32 @@ class _login_page extends State<login_page> {
         'avatar': avatar
       };
 
+      http.Response resCheck = await http.post(
+            '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/createaccount.php', body: {
+            'email': email
+      });
       http.Response res = await http.post(
           '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/createaccount.php',
           body: userData);
-      if (res.body != '0') {
+      if(res.body == 'exist') {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("${_languageServices.getText('email')}${_languageServices.getText('used')}"),
+                content: Text("${_languageServices.getText('please')}${_languageServices.getText('login')}${_languageServices.getText('or')}${_languageServices.getText('singUp')}${_languageServices.getText('with')}${_languageServices.getText('anotherOption')}"),
+                actions: <Widget>[
+                  FlatButton(onPressed: () {
+                    Navigator.of(context).pop();
+                  }, child: Text("${_languageServices.getText('confirm')}"),)
+                ],
+              );
+            });
+        return;
+      }else if (res.body != '0') {
         String userId = res.body;
         _authentication.setUserId(userId);
-        _authentication.setUserEmail(
-          email.isEmpty ? '' : email,
-        );
+        _authentication.setUserEmail(email.isEmpty ? '' : email);
         _authentication.setUserName(fullName);
         _authentication.setLoginStatus(true);
         _authentication.setUserAvatar(avatar);

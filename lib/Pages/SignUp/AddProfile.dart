@@ -6,17 +6,23 @@ import 'package:resort_pos/Pages/HomePage/HomePage.dart';
 import 'package:resort_pos/Services/AppFontStyles.dart';
 import 'package:resort_pos/Services/Authentication.dart';
 import 'package:resort_pos/Services/LanguageService.dart';
+import 'package:resort_pos/Services/SQLiteService.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
 
 class add_profile extends StatefulWidget {
-  _add_profile createState() => _add_profile();
+  Map<String, dynamic> userData;
+  add_profile(this.userData);
+  _add_profile createState() => _add_profile(this.userData);
 }
 
 class _add_profile extends State<add_profile> {
+  Map<String, dynamic> userData;
+  _add_profile(this.userData);
   Authentication _authentication;
   LanguageServices _languageServices;
+  SQLiteDatabase _sqLiteDatabase;
   AppFontStyle _appFontStyle;
   bool isLoaded;
 
@@ -27,6 +33,7 @@ class _add_profile extends State<add_profile> {
     // TODO: implement initState
     super.initState();
     _appFontStyle = new AppFontStyle();
+    _sqLiteDatabase = SQLiteDatabase();
     isLoaded = true;
   }
 
@@ -39,23 +46,13 @@ class _add_profile extends State<add_profile> {
   }
 
   Future getImageFromGallery()async{
-    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _file = tmp;
-    });
-  }
-
-  Future getImageFromCamera()async{
-    File tmp = await ImagePicker.pickImage(source: ImageSource.camera);
+    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery, maxHeight: 256);
     setState(() {
       _file = tmp;
     });
   }
 
   Future uploadImageToServer()async{
-    setState(() {
-      isLoaded = false;
-    });
     if(_file == null){
       await showDialog(context: context,builder: (BuildContext context){
         return AlertDialog(
@@ -92,9 +89,25 @@ class _add_profile extends State<add_profile> {
         return home_page();
       }));
     }
+  }
+
+  Future uploadUserData()async{
     setState(() {
-      isLoaded = true;
+      isLoaded = false;
     });
+    http.Response res = await http.post(
+        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/createaccount.php',
+        body: userData);
+    if (res.body != '0') {
+      String userId = res.body;
+      _authentication.setUserId(userId);
+      _authentication.setUserEmail(this.userData['email']);
+      _authentication.setUserName(this.userData['firstname']);
+      _authentication.setLoginStatus(true);
+      await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'email', password: this.userData['password']);
+    }else{
+      print(res.body);
+    }
   }
 
   @override
@@ -193,10 +206,12 @@ class _add_profile extends State<add_profile> {
                   GestureDetector(
                     onTap: (){
                       _authentication.setUserAvatar(null);
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                        return home_page();
-                      }));
+                      uploadUserData().then((e){
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
+                          return home_page();
+                        }));
+                      });
                     },
                     child: Container(
                       alignment: Alignment.center,
@@ -224,7 +239,14 @@ class _add_profile extends State<add_profile> {
                   ),
                   GestureDetector(
                     onTap: (){
-                      uploadImageToServer();
+                      uploadUserData().then((a){
+                        uploadImageToServer();
+                      }).catchError((a){
+                        setState(() {
+                          isLoaded = true;
+                        });
+                        return;
+                      });
                     },
                     child: Container(
                       alignment: Alignment.center,

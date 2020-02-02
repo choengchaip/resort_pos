@@ -68,7 +68,7 @@ class _language_page extends State<language_page>{
     });
     if(res.body == '1'){
       Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-        return _authentication.getAuthType() == 'email' ? signup_form() : terms_page();
+        return _authentication.getAuthType() == 'email' ? signup_form() : terms_page(null);
       }));
     }
   }
@@ -89,16 +89,33 @@ class _language_page extends State<language_page>{
               height: _paddingTop,
             ),
             Container(
+              height: 50,
               margin: EdgeInsets.only(bottom: 15),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _languageServices.getText('singUp'),
-                style: _appFontStyle.getTopBarText(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _languageServices.getText('singUp'),
+                      style: _appFontStyle.getTopBarText(),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
               child: Container(
-                child: ListView.builder(itemCount: languageList == null ? 0 : languageList.length,itemBuilder: (BuildContext context, int index){
+                child: ListView.builder(padding: EdgeInsets.zero,itemCount: languageList == null ? 0 : languageList.length,itemBuilder: (BuildContext context, int index){
                   return GestureDetector(
                     onTap: (){
                       setState(() {

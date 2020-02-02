@@ -45,74 +45,134 @@ class _signup_form extends State<signup_form> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     _authentication = Provider.of<Authentication>(context, listen: false);
-    _languageServices = Provider.of<LanguageServices>(context,listen: false);
+    _languageServices = Provider.of<LanguageServices>(context, listen: false);
   }
 
   Future uploadData() async {
-    if(_firstname.text.isEmpty){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
+    if (_firstname.text.isEmpty) {
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('name')}",
+                style: _appFontStyle.getSmallButtonText(),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("ตกลง"),
+                )
+              ],
+            );
+          });
       return;
     }
-    if(_lastname.text.isEmpty){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('lastName')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
+    if (_lastname.text.isEmpty) {
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('lastName')}",
+                style: _appFontStyle.getSmallButtonText(),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("ตกลง"),
+                )
+              ],
+            );
+          });
       return;
     }
-    if(_telephone.text.isEmpty){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('mobileNo')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
+    if (_telephone.text.isEmpty) {
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('mobileNo')}",
+                style: _appFontStyle.getSmallButtonText(),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("ตกลง"),
+                )
+              ],
+            );
+          });
       return;
     }
-    if(_email.text.isEmpty || !EmailValidator.validate(_email.text)){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('email')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
+    if (_email.text.isEmpty || !EmailValidator.validate(_email.text)) {
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('email')}",
+                style: _appFontStyle.getSmallButtonText(),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("ตกลง"),
+                )
+              ],
+            );
+          });
       return;
     }
-    if(_password.text.isEmpty){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('password')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
+    if (_password.text.isEmpty) {
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('password')}",
+                style: _appFontStyle.getSmallButtonText(),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("ตกลง"),
+                )
+              ],
+            );
+          });
       return;
     }
-    if(_birthday == null){
-      await showDialog(context: context,builder: (BuildContext context){
-        return AlertDialog(
-          title: Text("${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('dateOfBirth')}",style: _appFontStyle.getSmallButtonText(),),
-          actions: <Widget>[
-            FlatButton(onPressed: (){Navigator.of(context).pop();},child: Text("ตกลง"),)
-          ],
-        );
-      });
+    if (_birthday == null) {
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "${_languageServices.getText('please')}${_languageServices.getText('enter')}${_languageServices.getText('dateOfBirth')}",
+                style: _appFontStyle.getSmallButtonText(),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("ตกลง"),
+                )
+              ],
+            );
+          });
       return;
     }
 
@@ -130,19 +190,36 @@ class _signup_form extends State<signup_form> {
       'longitude': currentLocation['longitude'].toString()
     };
 
-    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/createaccount.php',
-    body: userData);
-    if(res.body != '0'){
-      String userId = res.body;
-      _authentication.setUserId(userId);
-      _authentication.setUserEmail(_email.text);
-      _authentication.setUserName(_firstname.text);
-      _authentication.setLoginStatus(true);
-      await _sqLiteDatabase.initialDatabase(_authentication.getId(), 'email',
-          password: _password.text);
-      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-        return terms_page();
-      }));
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/signup/checkemail.php', body: {
+      'email': _email.text,
+    });
+    if(res.body == '1'){
+      await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                "${_languageServices.getText('email')}${_languageServices.getText('used')}",
+                style: _appFontStyle.getSmallButtonText(),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(_languageServices.getText('confirm')),
+                )
+              ],
+            );
+          });
+      return;
+    }else if(res.body == '0'){
+      Navigator.push(context,
+          MaterialPageRoute(builder: (BuildContext context) {
+            return terms_page(userData);
+          }));
+    }else{
+      print(res.body);
     }
   }
 
@@ -164,11 +241,28 @@ class _signup_form extends State<signup_form> {
               height: _paddingTop,
             ),
             Container(
+              height: 50,
               margin: EdgeInsets.only(bottom: 15),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _languageServices.getText('singUp'),
-                style: _appFontStyle.getTopBarText(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _languageServices.getText('singUp'),
+                      style: _appFontStyle.getTopBarText(),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -177,10 +271,10 @@ class _signup_form extends State<signup_form> {
                   padding: EdgeInsets.zero,
                   children: <Widget>[
                     Container(
-                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
+                      margin: EdgeInsets.only(bottom: 15, left: 5, right: 5),
                       alignment: Alignment.centerLeft,
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: _width/8.5,
+                      height: _width / 8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -197,9 +291,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
+                      margin: EdgeInsets.only(bottom: 15, left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: _width/8.5,
+                      height: _width / 8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -216,9 +310,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
+                      margin: EdgeInsets.only(bottom: 15, left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: _width/8.5,
+                      height: _width / 8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -236,9 +330,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
+                      margin: EdgeInsets.only(bottom: 15, left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: _width/8.5,
+                      height: _width / 8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -256,9 +350,9 @@ class _signup_form extends State<signup_form> {
                     ),
                     Container(
                       alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
+                      margin: EdgeInsets.only(bottom: 15, left: 5, right: 5),
                       padding: EdgeInsets.only(left: 15, right: 15),
-                      height: _width/8.5,
+                      height: _width / 8.5,
                       decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -275,17 +369,21 @@ class _signup_form extends State<signup_form> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () async{
-                        DateTime tmp_date = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(1900), lastDate: DateTime(2100));
+                      onTap: () async {
+                        DateTime tmp_date = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(1900),
+                            lastDate: DateTime(2100));
                         setState(() {
                           _birthday = format.format(tmp_date);
                         });
                       },
                       child: Container(
                         alignment: Alignment.centerLeft,
-                        margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
+                        margin: EdgeInsets.only(bottom: 15, left: 5, right: 5),
                         padding: EdgeInsets.only(left: 15, right: 15),
-                        height: _width/8.5,
+                        height: _width / 8.5,
                         decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -326,9 +424,9 @@ class _signup_form extends State<signup_form> {
                 child: AnimatedContainer(
                   duration: Duration(milliseconds: 300),
                   alignment: Alignment.center,
-                  margin: EdgeInsets.only(bottom: 15,left: 5, right: 5),
+                  margin: EdgeInsets.only(bottom: 15, left: 5, right: 5),
                   padding: EdgeInsets.only(left: 15, right: 15),
-                  height: _width/8.5,
+                  height: _width / 8.5,
                   decoration: BoxDecoration(
                     color: Color(0xff0092C7),
                     borderRadius: BorderRadius.all(Radius.circular(25)),

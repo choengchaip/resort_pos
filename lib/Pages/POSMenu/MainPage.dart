@@ -132,7 +132,7 @@ class _main_page extends State<main_page> {
   }
 
   Future addCategoryImage() async {
-    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery);
+    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery, maxHeight: 128);
     String tmpName =
         '${_posService.getPosId()}_${new DateTime.now().millisecondsSinceEpoch.toString()}';
     setState(() {
@@ -142,7 +142,7 @@ class _main_page extends State<main_page> {
   }
 
   Future addProductImage() async {
-    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery);
+    File tmp = await ImagePicker.pickImage(source: ImageSource.gallery, maxHeight: 512);
     String tmpName =
         '${productType[_productTypeSelect][0]}_${new DateTime.now().millisecondsSinceEpoch.toString()}';
     setState(() {
@@ -634,7 +634,7 @@ class _main_page extends State<main_page> {
 
   Future loadCategoryData() async {
     setState(() {
-      isLoaded = false;
+//      isLoaded = false;
     });
     _list = [
       'Pizza1',
@@ -691,6 +691,7 @@ class _main_page extends State<main_page> {
     };
     http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproducttype.php',body: postTypeData);
     print(res.body);
+    clearProductType();
   }
 
   Future addProductType()async{
@@ -1048,7 +1049,7 @@ class _main_page extends State<main_page> {
 
   Future loadCategoryType(int index)async{
     setState(() {
-      isLoaded = false;
+//      isLoaded = false;
       _productTypeSelect = 0;
     });
     String tmp = _type.length == 0 ? null : _type[index]['id'];
@@ -1062,7 +1063,7 @@ class _main_page extends State<main_page> {
 
   Future loadProduct(int index)async{
     setState(() {
-      isLoaded = false;
+//      isLoaded = false;
     });
     String tmp = productType.length == 0 ? null : productType[index][0];
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getproduct.php?type_id=${tmp}');
@@ -1669,6 +1670,9 @@ class _main_page extends State<main_page> {
     _languageServices = Provider.of<LanguageServices>(context);
     _posService = Provider.of<POSService>(context);
     if (!isLoaded) {
+      setState(() {
+        isLoaded = false;
+      });
       onEntry().then((e) {
         loadCategoryData().then((a){
           print('ty');
@@ -1679,6 +1683,9 @@ class _main_page extends State<main_page> {
             loadProduct(0).then((c){
               print('p');
               print(productData);
+              setState(() {
+                isLoaded = true;
+              });
             });
           });
         });
@@ -2237,7 +2244,7 @@ class _main_page extends State<main_page> {
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
-                                    child: productType.length == 0 ? Container(
+                                    child: productType == null ? Container() : productType.length == 0 ? Container(
                                       child: GestureDetector(
                                         onTap: (){
                                           if(_type.length == 0){
@@ -2404,7 +2411,7 @@ class _main_page extends State<main_page> {
                               ),
                             ),
                             Expanded(
-                                child: productData.length == 0 ? Container(
+                                child: productData == null ? Container() : productData.length == 0 ? Container(
                                   padding: EdgeInsets.only(left: 15),
                                   alignment: Alignment.topLeft,
                                       child: SingleChildScrollView(

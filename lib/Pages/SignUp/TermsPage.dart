@@ -7,10 +7,14 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
 class terms_page extends StatefulWidget {
-  _terms_page createState() => _terms_page();
+  Map<String, dynamic> userData;
+  terms_page(this.userData);
+  _terms_page createState() => _terms_page(this.userData);
 }
 
 class _terms_page extends State<terms_page> {
+  Map<String, dynamic> userData;
+  _terms_page(this.userData);
   Authentication _authentication;
   LanguageServices _languageServices;
   AppFontStyle _appFontStyle;
@@ -61,11 +65,28 @@ class _terms_page extends State<terms_page> {
               height: _paddingTop,
             ),
             Container(
+              height: 50,
               margin: EdgeInsets.only(bottom: 15),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _languageServices.getText('termsOfServiceAndPrivacyPolicy'),
-                style: _appFontStyle.getTopBarText(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      child: Icon(Icons.arrow_back_ios),
+                      margin: EdgeInsets.only(right: 15),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _languageServices.getText('termsOfServiceAndPrivacyPolicy'),
+                      style: _appFontStyle.getTopBarText(),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -93,7 +114,7 @@ class _terms_page extends State<terms_page> {
             GestureDetector(
               onTap: (){
                 Navigator.push(context, MaterialPageRoute(builder: (BuildContext context){
-                  return add_profile();
+                  return add_profile(this.userData);
                 }));
               },
               child: Container(
