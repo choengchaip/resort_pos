@@ -70,7 +70,7 @@ class _main_page extends State<main_page> {
     _sqLiteDatabase = new SQLiteDatabase();
 
     //Category
-    _categoryStatus = false;
+    _categoryStatus = true;
     _categorySelect = 0;
 
     //ProductType
@@ -182,7 +182,7 @@ class _main_page extends State<main_page> {
       _categoryFile = null;
       _categoryName.text = '';
       _categoryImageName = null;
-      _categoryStatus = false;
+      _categoryStatus = true;
     });
   }
 
@@ -190,7 +190,7 @@ class _main_page extends State<main_page> {
     setState(() {
       _productTypeSelect = 0;
       _productType.text = '';
-      _productTypeStatus = false;
+      _productTypeStatus = true;
     });
   }
 
@@ -198,7 +198,7 @@ class _main_page extends State<main_page> {
     setState(() {
       _productImage = null;
       _productImageName = null;
-      _productStatus = false;
+      _productStatus = true;
       _productName.text = '';
       _productPrice.text = '';
     });
@@ -1048,10 +1048,9 @@ class _main_page extends State<main_page> {
     });
   }
 
-  Future loadCategoryType(int index)async{
+  Future loadCategoryType(int index,{selectChange : 'true'})async{
     setState(() {
       productLoad = true;
-      _productTypeSelect = 0;
     });
     String tmp = _type.length == 1 ? null : _type[index]['id'];
     http.Response res = await http.get('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/getproducttype.php?category_id=${tmp}');
@@ -1059,6 +1058,9 @@ class _main_page extends State<main_page> {
     List<dynamic> _productType = jsonDecode(res.body);
     _productType.add(['dummy']);
     setState(() {
+      if(selectChange == 'true'){
+        _productTypeSelect = 0;
+      }
       productType = _productType;
       productLoad = false;
       isLoaded = true;
@@ -1862,24 +1864,12 @@ class _main_page extends State<main_page> {
                                             ),
                                           ),
                                         ),
-                                        Container(
-                                          margin: EdgeInsets.only(right: 10),
-                                          child: Icon(
-                                            IconData(
-                                                int.parse(
-                                                    _posService.getPosIcon()),
-                                                fontFamily: 'MaterialIcons'),
-                                            color: Colors.white,
-                                            size: 29,
-                                          ),
-                                        ),
                                         Expanded(
                                           child: Container(
                                             child: Text(
-                                              _posService.getPosName(),
+                                              '${_posService.getPosName()}',
                                               style:
-                                                  _appFontStyle.getTopBarText(
-                                                      color: Colors.white),
+                                                  _appFontStyle.getSmallButtonText(color: Colors.white),
                                               overflow: TextOverflow.clip,
                                               maxLines: 1,
                                             ),
@@ -1893,6 +1883,30 @@ class _main_page extends State<main_page> {
                                   padding: EdgeInsets.only(right: 15),
                                   child: Row(
                                     children: <Widget>[
+                                      _posService.getPermissionId() == '1' || _posService.getPermissionId() == '2' ? GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            isEdit = true;
+                                          });
+                                        },
+                                        child: Container(
+                                          margin: EdgeInsets.only(left: 15),
+                                          height: 35,
+                                          width: 35,
+                                          decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: isEdit
+                                                  ? Color.fromRGBO(
+                                                  255, 255, 255, 0.3)
+                                                  : Color.fromRGBO(
+                                                  1, 1, 1, 0.4)),
+                                          child: Icon(
+                                            Icons.settings,
+                                            color: Colors.white,
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ):Container(),
                                       GestureDetector(
                                         onTap: () {
                                           setState(() {
@@ -2648,23 +2662,31 @@ class _main_page extends State<main_page> {
                             child: GestureDetector(
                               onTap: (){
                                 uploadOrderData().then((a){
-                                  for(int i=0;i<_type.length;i++){
-                                    if(_type[i]['status'] == '1'){
-                                      setState(() {
-                                        _categorySelect = i;
-                                      });
-                                      break;
+                                  print(_type.length-2);
+                                  print(_categorySelect);
+                                  print(_type);
+                                  if(_type.length-2 < _categorySelect || _type[_categorySelect]['status'] != '1'){
+                                    print('Yes');
+                                    for(int i=0;i<_type.length;i++){
+                                      if(_type[i]['status'] == '1'){
+                                        setState(() {
+                                          _categorySelect = i;
+                                        });
+                                        break;
+                                      }
                                     }
                                   }
-                                  loadCategoryType(_categorySelect).then((b){
+                                  loadCategoryType(_categorySelect,selectChange: 'false').then((b){
                                     if(productType.length > 1){
-                                      for(int i=0;i<productType.length;i++){
-                                        if(productType[i].length > 1){
-                                          if(productType[i][3] == '1'){
-                                            setState(() {
-                                              _productTypeSelect = i;
-                                            });
-                                            break;
+                                      if(productType.length-2 < _productTypeSelect){
+                                        for(int i=0;i<productType.length;i++){
+                                          if(productType[i].length > 1){
+                                            if(productType[i][3] == '1'){
+                                              setState(() {
+                                                _productTypeSelect = i;
+                                              });
+                                              break;
+                                            }
                                           }
                                         }
                                       }
