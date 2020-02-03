@@ -117,10 +117,11 @@ class _language_page extends State<language_page>{
               child: Container(
                 child: ListView.builder(padding: EdgeInsets.zero,itemCount: languageList == null ? 0 : languageList.length,itemBuilder: (BuildContext context, int index){
                   return GestureDetector(
-                    onTap: (){
+                    onTap: ()async{
                       setState(() {
                         currentLanguage = languageList[index][0];
                         loadLanguageData(languageList[index][0]);
+                        setConfigLanguage();
                       });
                     },
                     child: AnimatedContainer(
@@ -141,27 +142,6 @@ class _language_page extends State<language_page>{
                     ),
                   );
                 }),
-              ),
-            ),
-
-            GestureDetector(
-              onTap: (){
-                setConfigLanguage();
-              },
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                alignment: Alignment.center,
-                margin: EdgeInsets.only(bottom: 15,left: 5,right: 5),
-                padding: EdgeInsets.only(left: 15, right: 15),
-                height: _width/8.5,
-                decoration: BoxDecoration(
-                  color: Color(0xff0092C7),
-                  borderRadius: BorderRadius.all(Radius.circular(25)),
-                ),
-                child: Text(
-                  _languageServices.getText('confirm'),
-                  style: _appFontStyle.getButtonText(color: Color(0xffffffff)),
-                ),
               ),
             ),
             SizedBox(

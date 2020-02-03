@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:resort_pos/Pages/HomePage/AddPos.dart';
 import 'package:resort_pos/Pages/POSMenu/MainPage.dart';
+import 'package:resort_pos/Pages/POSMenu/ProfilePage.dart';
 import 'package:resort_pos/Services/AppFontStyles.dart';
 import 'package:resort_pos/Services/Authentication.dart';
 import 'package:resort_pos/Services/LanguageService.dart';
@@ -84,29 +85,36 @@ class _home_page extends State<home_page> {
                   Container(
                     child: Row(
                       children: <Widget>[
-                        _authentication.getUserAvatar() != null
-                            ? Container(
-                                height: 55,
-                                width: 55,
-                                margin: EdgeInsets.only(right: 15),
-                                decoration: BoxDecoration(
+                        GestureDetector(
+                          onTap: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context){
+                              return profile_page();
+                            }));
+                          },
+                          child: _authentication.getUserAvatar() != null
+                              ? Container(
+                                  height: 55,
+                                  width: 55,
+                                  margin: EdgeInsets.only(right: 15),
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey,
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                          image: NetworkImage(
+                                              _authentication.getUserAvatar()),fit: BoxFit.cover)),
+                                )
+                              : Container(
+                                  height: 55,
+                                  width: 55,
+                                  margin: EdgeInsets.only(right: 15),
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
                                     color: Colors.grey,
                                     shape: BoxShape.circle,
-                                    image: DecorationImage(
-                                        image: NetworkImage(
-                                            _authentication.getUserAvatar()),fit: BoxFit.cover)),
-                              )
-                            : Container(
-                                height: 55,
-                                width: 55,
-                                margin: EdgeInsets.only(right: 15),
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey,
-                                  shape: BoxShape.circle,
+                                  ),
+                                  child: Image.asset('assets/icons/user.png'),
                                 ),
-                                child: Image.asset('assets/icons/user.png'),
-                              ),
+                        ),
                         Expanded(
                           child: Container(
                             child: Text(

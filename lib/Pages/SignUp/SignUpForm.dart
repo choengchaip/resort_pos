@@ -432,7 +432,7 @@ class _signup_form extends State<signup_form> {
                     borderRadius: BorderRadius.all(Radius.circular(25)),
                   ),
                   child: Text(
-                    _languageServices.getText('singUp'),
+                    _languageServices.getText('next'),
                     style:
                         _appFontStyle.getButtonText(color: Color(0xffffffff)),
                   ),

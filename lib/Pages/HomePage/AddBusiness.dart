@@ -257,11 +257,11 @@ class _addbusiness_page extends State<addbusiness_page>{
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        child: Icon(Icons.check_box,color: Colors.white,),
+                        child: Icon(Icons.arrow_forward,color: Colors.white,),
                       ),
                       Container(
                         child: Text(
-                          _languageServices.getText('confirm'),
+                          _languageServices.getText('next'),
                           style: _appFontStyle.getLightText(color: Colors.white),
                         ),
                       ),
