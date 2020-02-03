@@ -209,6 +209,7 @@ class _main_page extends State<main_page> {
   }
 
   Future addCategory() async {
+    clearCategory();
     await showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -748,6 +749,7 @@ class _main_page extends State<main_page> {
   }
 
   Future addProductType()async{
+    clearProductType();
     await showDialog(context: context, builder: (BuildContext context){
       return AlertDialog(
         content: Container(
@@ -1168,6 +1170,7 @@ class _main_page extends State<main_page> {
   }
 
   Future addProduct()async{
+    clearProduct();
 //    print(_type[_categorySelect]['name']);
 //    print(productType[_productTypeSelect][2]);
     await showDialog(
