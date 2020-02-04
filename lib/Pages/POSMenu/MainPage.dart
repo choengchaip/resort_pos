@@ -101,9 +101,13 @@ class _main_page extends State<main_page> {
       isLoaded = false;
       Navigator.of(context).pop();
     });
-    http.Response res = await http.post(
-        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteposcategory.php',
-        body: {'pos_id': id});
+    Map<String, double> currentLocation = _authentication.getCurrentPosition();
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteposcategory.php', body: {
+      'pos_id': id,
+      'user_id': _authentication.getId(),
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString(),
+    });
     if (res.body == '1') {
       await loadCategoryData();
     }
@@ -150,6 +154,7 @@ class _main_page extends State<main_page> {
     http.Response res = await http.post(
         '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addposcategory.php',
         body: categoryData);
+    print(res.body);
     if (res.body != '1') {}
     clearCategory();
     setState(() {
@@ -627,13 +632,21 @@ class _main_page extends State<main_page> {
   }
 
   Future deleteProductType(id) async {
+    print(id);
+    print(productType);
     setState(() {
       isLoaded = false;
       Navigator.of(context).pop();
     });
-    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteproducttype.php', body: {'product_type_id': id});
+    Map<String, double> currentLocation = _authentication.getCurrentPosition();
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteproducttype.php', body: {
+      'product_type_id': id,
+      'user_id': _authentication.getId(),
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString(),
+    });
+    await loadCategoryType(_categorySelect);
     if (res.body == '1') {
-      await loadCategoryType(_categorySelect);
     }
     setState(() {
       isLoaded = true;
@@ -698,7 +711,8 @@ class _main_page extends State<main_page> {
       'latitude': currentLocation['latitude'].toString(),
       'longitude': currentLocation['longitude'].toString()
     };
-    await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproducttype.php',body: postTypeData);
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproducttype.php',body: postTypeData);
+    print(res.body);
     clearProductType();
     setState(() {
       isLoaded = false;
@@ -1350,6 +1364,7 @@ class _main_page extends State<main_page> {
       'old_image': oldImage == null ? 'null' : oldImage
     };
     http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/addproduct.php', body: _productData);
+    print(res.body);
     if(res.body == '1'){
 
     }
@@ -1644,9 +1659,14 @@ class _main_page extends State<main_page> {
       isLoaded = false;
       Navigator.of(context).pop();
     });
-    http.Response res = await http.post(
-        '${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteproduct.php',
-        body: {'product_id': id});
+    Map<String, double> currentLocation = _authentication.getCurrentPosition();
+    http.Response res = await http.post('${_authentication.GETPROTOCAL}://${_authentication.GETIP}:${_authentication.GETPORT}/APIs/posmenu/deleteproduct.php', body: {
+      'product_id': id,
+      'user_id': _authentication.getId(),
+      'latitude': currentLocation['latitude'].toString(),
+      'longitude': currentLocation['longitude'].toString(),
+    });
+    print(res.body);
     if (res.body == '1') {
       await loadProduct(_productTypeSelect);
     }
